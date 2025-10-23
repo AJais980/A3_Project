@@ -36,28 +36,28 @@ export default function LandingPage() {
 			role: "Frontend & Backend Lead",
 			image: "/images/Aman.jpg",
 			linkedin: "https://www.linkedin.com/in/beingaman?utm_",
-			github: "https://github.com/beingAman"
+			github: "https://github.com/AJais980"
 		},
 		{
 			name: "Akash Das",
 			role: "Design & Frontend Lead",
 			image: "/images/Akash.png",
 			linkedin: "https://www.linkedin.com/in/akash-das-b504a2272?utm_",
-			github: "https://github.com/akashdas-dev"
+			github: "https://github.com/Akxxhhxd"
 		},
 		{
 			name: "Anuvab Munshi",
 			role: "Backend Co-Lead",
 			image: "/images/Anuvab.png",
 			linkedin: "https://www.linkedin.com/in/anuvab-munshi",
-			github: "https://github.com/anuvabmunshi"
+			github: "https://github.com/A-Munshi"
 		},
 		{
 			name: "Arijit Adhikary",
 			role: "Frontend Co-Lead",
 			image: "/images/Arijit.jpg",
 			linkedin: "https://www.linkedin.com/in/arijit-adhikary-596a88281",
-			github: "https://github.com/arijitadhikary"
+			github: "https://github.com/canUgitMe"
 		},
 		{
 			name: "Anupama Bain",
