@@ -1,0 +1,169 @@
+/* PDF Slider Custom Styles */
+
+/* Swiper customizations */
+.pdf-swiper {
+	background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.pdf-swiper-compact {
+	background: #ffffff;
+}
+
+.pdf-swiper .swiper-slide,
+.pdf-swiper-compact .swiper-slide {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pdf-swiper .swiper-slide {
+	padding: 20px;
+}
+
+.pdf-swiper-compact .swiper-slide {
+	padding: 8px;
+}
+
+.pdf-swiper .swiper-slide img,
+.pdf-swiper-compact .swiper-slide img {
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pdf-swiper .swiper-slide img {
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-swiper-compact .swiper-slide img {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-swiper .swiper-slide img:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.pdf-swiper-compact .swiper-slide img:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom pagination */
+.swiper-pagination {
+	bottom: 10px !important;
+}
+
+.swiper-pagination-bullet-custom {
+	width: 8px;
+	height: 8px;
+	background: rgba(255, 255, 255, 0.5);
+	border-radius: 50%;
+	margin: 0 4px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active-custom {
+	background: #3b82f6;
+	transform: scale(1.2);
+}
+
+/* Navigation buttons have no special animations */
+
+/* Loading animation */
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateX(20px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.pdf-swiper .swiper-slide {
+	animation: slideIn 0.5s ease-out;
+}
+
+/* Zoom container */
+.swiper-zoom-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.pdf-swiper {
+		height: 60vh !important;
+	}
+
+	.swiper-button-prev-custom,
+	.swiper-button-next-custom {
+		width: 40px;
+		height: 40px;
+		padding: 8px;
+	}
+
+	.swiper-button-prev-custom svg,
+	.swiper-button-next-custom svg {
+		width: 20px;
+		height: 20px;
+	}
+}
+
+/* Custom scrollbar for thumbnails */
+.thumbnail-container::-webkit-scrollbar {
+	height: 4px;
+}
+
+.thumbnail-container::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 2px;
+}
+
+.thumbnail-container::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 2px;
+}
+
+.thumbnail-container::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+
+/* Progress bar animation */
+@keyframes progressFill {
+	from {
+		width: 0%;
+	}
+}
+
+.progress-bar {
+	animation: progressFill 0.3s ease-out;
+}
+
+/* LinkedIn-style transitions */
+.linkedin-transition {
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.linkedin-hover:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Page indicator styling */
+.page-indicator {
+	background: rgba(0, 0, 0, 0.8);
+	color: white;
+	padding: 4px 8px;
+	border-radius: 12px;
+	font-size: 12px;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 10;
+}

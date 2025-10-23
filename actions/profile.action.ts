@@ -18,6 +18,7 @@ export async function getProfileByUsername(username: string) {
         image: true,
         location: true,
         website: true,
+        designation: true,
         createdAt: true,
         _count: {
           select: {
@@ -36,6 +37,7 @@ export async function getProfileByUsername(username: string) {
 }
 
 // Get current user's profile by Firebase ID
+// Get current user's profile by Firebase ID
 export async function getCurrentUserProfile(firebaseId: string) {
   try {
     const user = await prisma.user.findUnique({
@@ -49,6 +51,7 @@ export async function getCurrentUserProfile(firebaseId: string) {
         image: true,
         location: true,
         website: true,
+        designation: true,
         createdAt: true,
         _count: {
           select: {
@@ -71,13 +74,23 @@ export async function getUserPosts(userId: string) {
   try {
     const posts = await prisma.post.findMany({
       where: { authorId: userId },
-      include: {
+      select: {
+        id: true,
+        content: true,
+        fileUrl: true,
+        fileType: true,
+        fileName: true,
+        fileExtension: true,
+        createdAt: true,
+        updatedAt: true,
+        authorId: true,
         author: {
           select: {
             id: true,
             name: true,
             username: true,
             image: true,
+            designation: true,
           },
         },
         comments: {
@@ -88,10 +101,25 @@ export async function getUserPosts(userId: string) {
                 name: true,
                 username: true,
                 image: true,
+                designation: true,
               },
             },
+            replies: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    image: true,
+                    designation: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: "desc" },
         },
         likes: { select: { userId: true } },
         _count: { select: { likes: true, comments: true } },
@@ -112,13 +140,23 @@ export async function getUserLikedPosts(userId: string) {
       where: {
         likes: { some: { userId } },
       },
-      include: {
+      select: {
+        id: true,
+        content: true,
+        fileUrl: true,
+        fileType: true,
+        fileName: true,
+        fileExtension: true,
+        createdAt: true,
+        updatedAt: true,
+        authorId: true,
         author: {
           select: {
             id: true,
             name: true,
             username: true,
             image: true,
+            designation: true,
           },
         },
         comments: {
@@ -129,10 +167,25 @@ export async function getUserLikedPosts(userId: string) {
                 name: true,
                 username: true,
                 image: true,
+                designation: true,
               },
             },
+            replies: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    image: true,
+                    designation: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: "desc" },
         },
         likes: { select: { userId: true } },
         _count: { select: { likes: true, comments: true } },
@@ -156,10 +209,19 @@ export async function updateProfile(firebaseUid: string, formData: FormData) {
     const bio = formData.get("bio") as string;
     const location = formData.get("location") as string;
     const website = formData.get("website") as string;
+    const designation = formData.get("designation") as string;
+
+    // Build update data object
+    const updateData: any = { name, bio, location, website };
+
+    // Only include designation if it's provided and valid
+    if (designation && ["STUDENT", "TEACHER", "WORKING_PROFESSIONAL"].includes(designation)) {
+      updateData.designation = designation;
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { name, bio, location, website },
+      data: updateData,
     });
 
     revalidatePath("/profile");
@@ -189,5 +251,110 @@ export async function isFollowing(targetUserId: string, firebaseUid: string) {
   } catch (error) {
     console.error("Error checking follow status:", error);
     return false;
+  }
+}
+
+// Get user profile with follow status
+export async function getUserProfile(username: string, currentUserId?: string | null) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        bio: true,
+        image: true,
+        designation: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+            posts: true,
+          },
+        },
+      },
+    });
+
+    if (!user) return null;
+
+    let isFollowing = false;
+    if (currentUserId) {
+      const follow = await prisma.follows.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: currentUserId,
+            followingId: user.id,
+          },
+        },
+      });
+      isFollowing = !!follow;
+    }
+
+    return {
+      ...user,
+      isFollowing,
+    };
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw new Error("Failed to fetch user profile");
+  }
+}
+
+// Toggle follow/unfollow
+export async function toggleFollow(targetUserId: string, currentUserId: string) {
+  try {
+    if (targetUserId === currentUserId) {
+      return { success: false, error: "Cannot follow yourself" };
+    }
+
+    const existingFollow = await prisma.follows.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: currentUserId,
+          followingId: targetUserId,
+        },
+      },
+    });
+
+    if (existingFollow) {
+      // Unfollow
+      await prisma.follows.delete({
+        where: {
+          followerId_followingId: {
+            followerId: currentUserId,
+            followingId: targetUserId,
+          },
+        },
+      });
+
+      revalidatePath("/explore");
+      revalidatePath("/profile");
+      return { success: true, action: "unfollowed" };
+    } else {
+      // Follow
+      await prisma.follows.create({
+        data: {
+          followerId: currentUserId,
+          followingId: targetUserId,
+        },
+      });
+
+      // Create notification
+      await prisma.notification.create({
+        data: {
+          userId: targetUserId,
+          creatorId: currentUserId,
+          type: "FOLLOW",
+        },
+      });
+
+      revalidatePath("/explore");
+      revalidatePath("/profile");
+      return { success: true, action: "followed" };
+    }
+  } catch (error) {
+    console.error("Error toggling follow:", error);
+    return { success: false, error: "Failed to update follow status" };
   }
 }

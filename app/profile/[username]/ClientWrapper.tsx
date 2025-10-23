@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
 	getProfileByUsername,
-	getUserLikedPosts,
 	getUserPosts,
 	isFollowing,
 } from "@/actions/profile.action";
+import { getUserStats } from "@/actions/badge.action";
 import ProfilePageClient from "./ProfilePageClient";
 import Loader from "@/components/Loader";
 
@@ -19,6 +19,7 @@ interface ClientWrapperProps {
 
 type User = Awaited<ReturnType<typeof getProfileByUsername>>;
 type Posts = Awaited<ReturnType<typeof getUserPosts>>;
+type BadgeStats = Awaited<ReturnType<typeof getUserStats>>;
 
 export default function ClientWrapper({ params, profileUser }: ClientWrapperProps) {
 	const { user, loading } = useAuth();
@@ -26,8 +27,8 @@ export default function ClientWrapper({ params, profileUser }: ClientWrapperProp
 	const [data, setData] = useState<{
 		user: NonNullable<User>;
 		posts: Posts;
-		likedPosts: Posts;
 		isFollowing: boolean;
+		badgeStats: BadgeStats;
 	} | null>(null);
 	const [dataLoading, setDataLoading] = useState(true);
 
@@ -42,16 +43,16 @@ export default function ClientWrapper({ params, profileUser }: ClientWrapperProp
 			if (!user) return;
 			try {
 				// Since we already have the profileUser from server, no need to fetch it again
-				const [posts, likedPosts, isCurrentUserFollowing] = await Promise.all([
+				const [posts, isCurrentUserFollowing, badgeStats] = await Promise.all([
 					getUserPosts(profileUser.id),
-					getUserLikedPosts(profileUser.id),
 					isFollowing(profileUser.id, user.uid),
+					getUserStats(profileUser.id),
 				]);
 				setData({
 					user: profileUser,
 					posts,
-					likedPosts,
 					isFollowing: isCurrentUserFollowing,
+					badgeStats,
 				});
 			} catch (error) {
 				console.error("Error fetching profile data:", error);
@@ -71,8 +72,8 @@ export default function ClientWrapper({ params, profileUser }: ClientWrapperProp
 		<ProfilePageClient
 			user={data.user}
 			posts={data.posts}
-			likedPosts={data.likedPosts}
 			isFollowing={data.isFollowing}
+			badgeStats={data.badgeStats}
 		/>
 	);
 }

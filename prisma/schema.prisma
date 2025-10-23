@@ -17,6 +17,9 @@ model User {
     image                String?
     location             String?
     website              String?
+    designation          Designation?
+    isOnline             Boolean        @default(false)
+    lastSeen             DateTime?
     createdAt            DateTime       @default(now())
     updatedAt            DateTime       @updatedAt
     comments             Comment[]
@@ -26,15 +29,23 @@ model User {
     notificationsCreated Notification[] @relation("notificationCreator")
     notifications        Notification[] @relation("userNotifications")
     posts                Post[]
+    badges               UserBadge[]
+    chatsAsUser1         Chat[]         @relation("User1Chats")
+    chatsAsUser2         Chat[]         @relation("User2Chats")
+    messages             Message[]
+    reactions            Reaction[]
 }
 
 model Post {
     id            String         @id @default(cuid())
     authorId      String
     content       String?
-    image         String?
+    fileType      String?
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
+    fileName      String?
+    fileExtension String?
+    fileUrl       String?
     comments      Comment[]
     likes         Like[]
     notifications Notification[]
@@ -46,12 +57,17 @@ model Comment {
     content       String
     authorId      String
     postId        String
+    parentId      String? // For nested replies
+    rating        Int?
     createdAt     DateTime       @default(now())
     author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
     post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+    parent        Comment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+    replies       Comment[]      @relation("CommentReplies")
     notifications Notification[]
 
     @@index([authorId, postId])
+    @@index([parentId])
 }
 
 model Like {
@@ -77,6 +93,17 @@ model Follows {
     @@index([followerId, followingId])
 }
 
+model UserBadge {
+    id        String    @id @default(cuid())
+    userId    String
+    badgeType BadgeType
+    earnedAt  DateTime  @default(now())
+    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, badgeType])
+    @@index([userId])
+}
+
 model Notification {
     id        String           @id @default(cuid())
     userId    String
@@ -98,4 +125,76 @@ enum NotificationType {
     LIKE
     COMMENT
     FOLLOW
+}
+
+enum Designation {
+    STUDENT
+    TEACHER
+    WORKING_PROFESSIONAL
+}
+
+enum BadgeType {
+    RISING_HELPER
+    HELPFUL_MIND
+    TRUSTED_ADVISOR
+    STAR_MENTOR
+    LEGENDARY_GUIDE
+}
+
+model Chat {
+    id               String    @id @default(cuid())
+    user1Id          String
+    user2Id          String
+    user1UnreadCount Int       @default(0)
+    user2UnreadCount Int       @default(0)
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @updatedAt
+    user1            User      @relation("User1Chats", fields: [user1Id], references: [id], onDelete: Cascade)
+    user2            User      @relation("User2Chats", fields: [user2Id], references: [id], onDelete: Cascade)
+    messages         Message[]
+
+    @@unique([user1Id, user2Id])
+    @@index([user1Id])
+    @@index([user2Id])
+}
+
+model Message {
+    id              String        @id @default(cuid())
+    chatId          String
+    senderId        String
+    content         String
+    createdAt       DateTime      @default(now())
+    updatedAt       DateTime      @updatedAt
+    isDeleted       Boolean       @default(false)
+    deletedForUsers String[]      @default([])
+    replyToId       String?
+    status          MessageStatus @default(SENT)
+    deliveredAt     DateTime?
+    readAt          DateTime?
+    chat            Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    sender          User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    replyTo         Message?      @relation("MessageReplies", fields: [replyToId], references: [id])
+    replies         Message[]     @relation("MessageReplies")
+    reactions       Reaction[]
+
+    @@index([chatId, createdAt])
+}
+
+enum MessageStatus {
+    SENT
+    DELIVERED
+    READ
+}
+
+model Reaction {
+    id        String   @id @default(cuid())
+    messageId String
+    userId    String
+    emoji     String
+    createdAt DateTime @default(now())
+    message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([messageId, userId])
+    @@index([messageId])
 }

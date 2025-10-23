@@ -25,7 +25,7 @@ export async function getNotifications(firebaseUid: string) {
           select: {
             id: true,
             content: true,
-            image: true,
+            fileUrl: true,
           },
         },
         comment: {

@@ -1,5 +1,6 @@
 import './globals.css'
 import NextTopLoader from 'nextjs-toploader'
+import { RealtimeProvider } from '@/lib/SupabaseRealtimeContext'
 
 export const metadata = {
   title: 'PeerPulse',
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           height={7}
           showSpinner={false}
         />
-        {children}
+        <RealtimeProvider>
+          {children}
+        </RealtimeProvider>
       </body>
     </html>
   )

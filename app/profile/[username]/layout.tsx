@@ -1,4 +1,4 @@
-import { NavigationBar } from '@/components/Navigation'
+import { Navigation } from '@/components/Navigation'
 import { Toaster } from 'react-hot-toast'
 import NextTopLoader from 'nextjs-toploader'
 
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					height={7}
 					showSpinner={false}
 				/>
-				<NavigationBar />
+				<Navigation />
 				<div className='min-h-screen p-5 md:p-0 flex flex-col justify-center items-center'>
 					{children}
 				</div>
