@@ -50,6 +50,8 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
   const [socket, setSocket] = useState<typeof Socket | null>(null);
   const [userStatuses, setUserStatuses] = useState<Record<string, { isOnline: boolean; lastSeen?: Date | null }>>({});
   const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [presenceChannel, setPresenceChannel] = useState<RealtimeChannel | null>(null);
+  const [useSupabasePresence, setUseSupabasePresence] = useState(false);
 
   // Initialize Supabase client
   useEffect(() => {
@@ -88,8 +90,18 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     if (user && dbUserId) {
       const socketInstance = getSocket();
 
+      // Set a timeout to check if Socket.IO connects
+      const connectionTimeout = setTimeout(() => {
+        if (!socketInstance.connected) {
+          console.log('Socket.IO connection timeout, switching to Supabase Presence');
+          setUseSupabasePresence(true);
+        }
+      }, 5000); // 5 second timeout
+
       const handleConnect = () => {
         console.log('Socket.IO connected:', socketInstance.id);
+        clearTimeout(connectionTimeout);
+        setUseSupabasePresence(false);
         socketInstance.emit('join', dbUserId);
       };
 
@@ -99,11 +111,14 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 
       const handleConnectError = (error: any) => {
         console.error('Socket.IO connection error:', error);
+        clearTimeout(connectionTimeout);
+        setUseSupabasePresence(true);
       };
 
       if (!socketInstance.connected) {
         socketInstance.connect();
       } else {
+        clearTimeout(connectionTimeout);
         socketInstance.emit('join', dbUserId);
       }
 
@@ -143,6 +158,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
       setSocket(socketInstance);
 
       return () => {
+        clearTimeout(connectionTimeout);
         socketInstance.off('connect', handleConnect);
         socketInstance.off('disconnect', handleDisconnect);
         socketInstance.off('connect_error', handleConnectError);
@@ -171,6 +187,68 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
       };
     }
   }, [supabase, user, isConnected]);
+
+  // Setup Supabase Presence for online status (fallback for Vercel/serverless)
+  useEffect(() => {
+    if (supabase && dbUserId && useSupabasePresence) {
+      console.log('Using Supabase Presence for online status');
+      
+      const channel = supabase.channel('online-users', {
+        config: {
+          presence: {
+            key: dbUserId,
+          },
+        },
+      });
+
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          console.log('Presence sync:', state);
+          
+          // Update user statuses based on presence
+          const newStatuses: Record<string, { isOnline: boolean; lastSeen?: Date | null }> = {};
+          Object.keys(state).forEach(userId => {
+            newStatuses[userId] = {
+              isOnline: true,
+              lastSeen: null
+            };
+          });
+          setUserStatuses(newStatuses);
+        })
+        .on('presence', { event: 'join' }, ({ key, newPresences }: any) => {
+          console.log('User joined:', key);
+          setUserStatuses(prev => ({
+            ...prev,
+            [key]: { isOnline: true, lastSeen: null }
+          }));
+        })
+        .on('presence', { event: 'leave' }, ({ key, leftPresences }: any) => {
+          console.log('User left:', key);
+          setUserStatuses(prev => ({
+            ...prev,
+            [key]: { isOnline: false, lastSeen: new Date() }
+          }));
+        })
+        .subscribe(async (status: string) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Presence channel subscribed');
+            // Track this user as online
+            await channel.track({
+              user_id: dbUserId,
+              online_at: new Date().toISOString(),
+            });
+          }
+        });
+
+      setPresenceChannel(channel);
+
+      return () => {
+        channel.unsubscribe();
+        setPresenceChannel(null);
+      };
+    }
+  }, [supabase, dbUserId, useSupabasePresence]);
 
   const joinChat = useCallback((chatId: string, userId: string) => {
     if (!supabase || !user) return;
@@ -313,10 +391,24 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
   }, []);
 
   const requestUserStatus = useCallback((userIds: string[]) => {
-    if (socket && socket.connected) {
+    if (useSupabasePresence && presenceChannel) {
+      // When using Supabase Presence, users are automatically tracked
+      // Just check current presence state
+      const state = presenceChannel.presenceState();
+      const newStatuses: Record<string, { isOnline: boolean; lastSeen?: Date | null }> = {};
+      
+      userIds.forEach(userId => {
+        newStatuses[userId] = {
+          isOnline: !!state[userId],
+          lastSeen: state[userId] ? null : new Date()
+        };
+      });
+      
+      setUserStatuses(prev => ({ ...prev, ...newStatuses }));
+    } else if (socket && socket.connected) {
       socket.emit('request_user_status', { userIds });
     }
-  }, [socket]);
+  }, [socket, useSupabasePresence, presenceChannel]);
 
   const value: RealtimeContextType = {
     supabase,

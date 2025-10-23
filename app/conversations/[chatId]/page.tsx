@@ -842,7 +842,6 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                   );
                 })
               )}
-              <TypingIndicator typingUsers={typingUsers} />
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -852,6 +851,15 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             onClick={scrollToBottom}
           />
         </div>
+
+        {/* Typing Indicator - Fixed position above input */}
+        {typingUsers.length > 0 && (
+          <div className="border-t border-gray-800/50 bg-gray-900/50 px-4 py-2">
+            <div className="max-w-4xl mx-auto">
+              <TypingIndicator typingUsers={typingUsers} />
+            </div>
+          </div>
+        )}
 
         {/* Reply Preview */}
         {replyTo && (
