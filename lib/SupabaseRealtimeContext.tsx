@@ -192,7 +192,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
   useEffect(() => {
     if (supabase && dbUserId && useSupabasePresence) {
       console.log('Using Supabase Presence for online status');
-      
+
       const channel = supabase.channel('online-users', {
         config: {
           presence: {
@@ -205,7 +205,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
         .on('presence', { event: 'sync' }, () => {
           const state = channel.presenceState();
           console.log('Presence sync:', state);
-          
+
           // Update user statuses based on presence
           const newStatuses: Record<string, { isOnline: boolean; lastSeen?: Date | null }> = {};
           Object.keys(state).forEach(userId => {
@@ -396,14 +396,14 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
       // Just check current presence state
       const state = presenceChannel.presenceState();
       const newStatuses: Record<string, { isOnline: boolean; lastSeen?: Date | null }> = {};
-      
+
       userIds.forEach(userId => {
         newStatuses[userId] = {
           isOnline: !!state[userId],
           lastSeen: state[userId] ? null : new Date()
         };
       });
-      
+
       setUserStatuses(prev => ({ ...prev, ...newStatuses }));
     } else if (socket && socket.connected) {
       socket.emit('request_user_status', { userIds });
