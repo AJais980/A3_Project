@@ -11,12 +11,5 @@ const firebaseConfig = {
 	appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Add some debug logging
-console.log('Firebase Config:', {
-	apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '[SET]' : '[NOT SET]',
-	authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? '[SET]' : '[NOT SET]',
-	projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? '[SET]' : '[NOT SET]',
-});
-
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 export const auth = getAuth(app);

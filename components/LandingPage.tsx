@@ -29,6 +29,36 @@ export default function LandingPage() {
 	const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
 	const { user } = useAuth();
 
+	// Animation variants for consistent, smooth animations
+	const fadeInUp = {
+		hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
+		visible: {
+			opacity: 1,
+			y: 0,
+			filter: "blur(0px)"
+		}
+	};
+
+	const fadeInScale = {
+		hidden: { opacity: 0, scale: 0.85, filter: "blur(10px)" },
+		visible: {
+			opacity: 1,
+			scale: 1,
+			filter: "blur(0px)"
+		}
+	};
+
+	const staggerContainer = {
+		hidden: { opacity: 0 },
+		visible: {
+			opacity: 1,
+			transition: {
+				staggerChildren: 0.15,
+				delayChildren: 0.2
+			}
+		}
+	};
+
 	// Team members data
 	const team = [
 		{
@@ -64,7 +94,7 @@ export default function LandingPage() {
 			role: "Research & Content Lead",
 			image: "/images/Anupama.png",
 			linkedin: "https://www.linkedin.com/in/anupama-bain-36b263282",
-			github: "https://github.com/anupamabain"
+			github: "https://github.com/GitByAnu"
 		},
 		{
 			name: "Anushka Midda",
@@ -114,13 +144,6 @@ export default function LandingPage() {
 		}
 	];
 
-	const stats = [
-		{ value: "5K+", label: "Active Members" },
-		{ value: "50K+", label: "Feedback Sessions" },
-		{ value: "96%", label: "Growth Rate" },
-		{ value: "24/7", label: "Peer Support" }
-	];
-
 	const useCases = [
 		{
 			icon: FileText,
@@ -143,9 +166,9 @@ export default function LandingPage() {
 		<div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white overflow-hidden">
 			{/* Existing Navigation Component */}
 			<Navigation />
-
+			{/* "relative min-h-screen flex items-center justify-center pt-8 md:pt-20 pb-16 px-4 overflow-hidden" */}
 			{/* Hero Section */}
-			<section className="relative min-h-screen flex items-center justify-center pt-32 px-4 overflow-hidden">
+			<section className="relative min-h-screen flex items-center justify-center pt-2 md:pt-20 pb-14 px-4 overflow-hidden">
 				{/* Animated Background */}
 				<div className="absolute inset-0 overflow-hidden">
 					<div className="absolute w-96 h-96 bg-purple-600/20 rounded-full blur-3xl top-20 -left-20 animate-pulse"></div>
@@ -193,22 +216,6 @@ export default function LandingPage() {
 							>
 								Learn More
 							</a>
-						</div>						{/* Stats */}
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20">
-							{stats.map((stat, index) => (
-								<motion.div
-									key={index}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: 0.2 * index }}
-									className="text-center"
-								>
-									<div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-										{stat.value}
-									</div>
-									<div className="text-gray-400">{stat.label}</div>
-								</motion.div>
-							))}
 						</div>
 					</motion.div>
 				</motion.div>
@@ -217,7 +224,7 @@ export default function LandingPage() {
 				<motion.div
 					animate={{ y: [0, 10, 0] }}
 					transition={{ repeat: Infinity, duration: 2 }}
-					className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+					className="absolute bottom-24 md:bottom-8 left-1/2 transform -translate-x-1/2"
 				>
 					<div className="w-6 h-10 border-2 border-gray-600 rounded-full flex items-start justify-center p-2">
 						<div className="w-1 h-3 bg-gradient-to-b from-purple-500 to-transparent rounded-full"></div>
@@ -229,9 +236,10 @@ export default function LandingPage() {
 			<section id="features" className="py-20 px-4 relative">
 				<div className="max-w-7xl mx-auto">
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
+						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+						whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						viewport={{ once: true, margin: "-100px" }}
+						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 						className="text-center mb-16"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -244,14 +252,22 @@ export default function LandingPage() {
 						</p>
 					</motion.div>
 
-					<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+					<motion.div
+						className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+						variants={staggerContainer}
+						initial="hidden"
+						whileInView="visible"
+						viewport={{ once: true, margin: "-100px" }}
+					>
 						{features.map((feature, index) => (
 							<motion.div
 								key={index}
-								initial={{ opacity: 0, y: 20 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								viewport={{ once: true }}
-								transition={{ delay: index * 0.1 }}
+								variants={fadeInUp}
+								transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+								whileHover={{
+									y: -8,
+									transition: { duration: 0.3, ease: "easeOut" }
+								}}
 								className="group bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10"
 							>
 								<div className={`w-14 h-14 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
@@ -261,7 +277,7 @@ export default function LandingPage() {
 								<p className="text-gray-400 leading-relaxed">{feature.description}</p>
 							</motion.div>
 						))}
-					</div>
+					</motion.div>
 				</div>
 			</section>
 
@@ -269,9 +285,10 @@ export default function LandingPage() {
 			<section className="py-20 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
 				<div className="max-w-7xl mx-auto">
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
+						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+						whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						viewport={{ once: true, margin: "-100px" }}
+						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 						className="text-center mb-16"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -284,14 +301,23 @@ export default function LandingPage() {
 						</p>
 					</motion.div>
 
-					<div className="grid md:grid-cols-3 gap-8">
+					<motion.div
+						className="grid md:grid-cols-3 gap-8"
+						variants={staggerContainer}
+						initial="hidden"
+						whileInView="visible"
+						viewport={{ once: true, margin: "-100px" }}
+					>
 						{useCases.map((useCase, index) => (
 							<motion.div
 								key={index}
-								initial={{ opacity: 0, scale: 0.9 }}
-								whileInView={{ opacity: 1, scale: 1 }}
-								viewport={{ once: true }}
-								transition={{ delay: index * 0.1 }}
+								variants={fadeInScale}
+								transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+								whileHover={{
+									y: -8,
+									scale: 1.02,
+									transition: { duration: 0.3, ease: "easeOut" }
+								}}
 								className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 text-center hover:border-purple-500/50 transition-all"
 							>
 								<div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -301,7 +327,7 @@ export default function LandingPage() {
 								<p className="text-gray-400">{useCase.description}</p>
 							</motion.div>
 						))}
-					</div>
+					</motion.div>
 				</div>
 			</section>
 
@@ -309,10 +335,11 @@ export default function LandingPage() {
 			<section id="how-it-works" className="py-20 px-4">
 				<div className="max-w-7xl mx-auto">
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
-						className="text-center mb-16"
+						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+						whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						viewport={{ once: true, margin: "-100px" }}
+						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+						className="text-center mb-20"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
 							<span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -324,32 +351,103 @@ export default function LandingPage() {
 						</p>
 					</motion.div>
 
-					<div className="grid md:grid-cols-4 gap-8">
-						{[
-							{ step: "01", title: "Sign Up", desc: "Create your free account with Google" },
-							{ step: "02", title: "Upload", desc: "Share your work - docs, code, or designs" },
-							{ step: "03", title: "Get Feedback", desc: "Receive constructive reviews from peers" },
-							{ step: "04", title: "Grow & Help", desc: "Improve and give back to the community" }
-						].map((item, index) => (
-							<motion.div
-								key={index}
-								initial={{ opacity: 0, y: 20 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								viewport={{ once: true }}
-								transition={{ delay: index * 0.1 }}
-								className="relative text-center"
-							>
-								<div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-lg shadow-purple-500/50">
-									{item.step}
-								</div>
-								<h3 className="text-2xl font-bold mb-3">{item.title}</h3>
-								<p className="text-gray-400">{item.desc}</p>
-								{index < 3 && (
-									<div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-gradient-to-r from-purple-600 to-transparent -z-10"></div>
-								)}
-							</motion.div>
-						))}
-					</div>
+					<motion.div
+						className="relative max-w-6xl mx-auto"
+						variants={staggerContainer}
+						initial="hidden"
+						whileInView="visible"
+						viewport={{ once: true, margin: "-100px" }}
+					>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
+							{[
+								{
+									step: "01",
+									title: "Sign Up",
+									desc: "Create your free account with Google in seconds",
+									icon: Users
+								},
+								{
+									step: "02",
+									title: "Share Content",
+									desc: "Upload docs, code, designs, or any work you want feedback on",
+									icon: FileText
+								},
+								{
+									step: "03",
+									title: "Get Feedback",
+									desc: "Receive constructive reviews and ratings from community peers",
+									icon: MessageCircle
+								},
+								{
+									step: "04",
+									title: "Grow Together",
+									desc: "Improve your skills and help others by giving back",
+									icon: TrendingUp
+								}
+							].map((item, index) => (
+								<motion.div
+									key={index}
+									variants={fadeInUp}
+									transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+									className="relative"
+								>
+									{/* Card */}
+									<motion.div
+										whileHover={{
+											y: -8,
+											transition: { duration: 0.4, ease: "easeOut" }
+										}}
+										className="relative bg-gradient-to-b from-gray-800/50 to-gray-900/50 backdrop-blur-lg border border-gray-700/50 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 h-full group"
+									>
+										{/* Step Number Badge */}
+										<div className="absolute -top-4 left-8">
+											<div className="relative">
+												<div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
+												<div className="relative px-4 py-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center border-2 border-gray-900 shadow-xl">
+													<span className="text-sm font-bold text-white">STEP {item.step}</span>
+												</div>
+											</div>
+										</div>
+
+										{/* Icon */}
+										<div className="mt-8 mb-6">
+											<div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+												<item.icon className="w-8 h-8 text-purple-400 group-hover:text-purple-300 transition-colors" />
+											</div>
+										</div>
+
+										{/* Content */}
+										<div className="space-y-3">
+											<h3 className="text-xl font-bold text-white group-hover:text-purple-300 transition-colors">
+												{item.title}
+											</h3>
+											<p className="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors">
+												{item.desc}
+											</p>
+										</div>
+
+										{/* Decorative Elements */}
+										<div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+										<div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-tr-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+									</motion.div>
+
+									{/* Arrow Between Cards - Desktop Only */}
+									{index < 3 && (
+										<div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+											<motion.div
+												initial={{ opacity: 0, scale: 0.5 }}
+												whileInView={{ opacity: 1, scale: 1 }}
+												transition={{ delay: 0.3 + index * 0.1, duration: 0.3 }}
+												className="w-8 h-8 bg-gray-800/80 backdrop-blur-sm border border-purple-500/30 rounded-full flex items-center justify-center"
+											>
+												<ArrowRight className="w-4 h-4 text-purple-400" />
+											</motion.div>
+										</div>
+									)}
+								</motion.div>
+							))}
+						</div>
+					</motion.div>
 				</div>
 			</section>
 
@@ -357,9 +455,10 @@ export default function LandingPage() {
 			<section id="team" className="py-20 px-4 bg-gradient-to-b from-gray-900/50 to-transparent">
 				<div className="max-w-7xl mx-auto">
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
+						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+						whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						viewport={{ once: true, margin: "-100px" }}
+						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 						className="text-center mb-16"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -372,14 +471,23 @@ export default function LandingPage() {
 						</p>
 					</motion.div>
 
-					<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+					<motion.div
+						className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+						variants={staggerContainer}
+						initial="hidden"
+						whileInView="visible"
+						viewport={{ once: true, margin: "-100px" }}
+					>
 						{team.map((member, index) => (
 							<motion.div
 								key={index}
-								initial={{ opacity: 0, scale: 0.9 }}
-								whileInView={{ opacity: 1, scale: 1 }}
-								viewport={{ once: true }}
-								transition={{ delay: index * 0.1 }}
+								variants={fadeInScale}
+								transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+								whileHover={{
+									y: -8,
+									scale: 1.02,
+									transition: { duration: 0.3, ease: "easeOut" }
+								}}
 								className="bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-2xl p-8 text-center hover:border-purple-500/50 transition-all group"
 							>
 								<div className="w-32 h-32 rounded-full mx-auto mb-6 overflow-hidden border-4 border-purple-600/50 shadow-lg shadow-purple-500/50">
@@ -413,7 +521,7 @@ export default function LandingPage() {
 								</div>
 							</motion.div>
 						))}
-					</div>
+					</motion.div>
 				</div>
 			</section>
 
@@ -421,9 +529,10 @@ export default function LandingPage() {
 			<section className="py-20 px-4">
 				<div className="max-w-7xl mx-auto">
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
+						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+						whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						viewport={{ once: true, margin: "-100px" }}
+						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 						className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-3xl p-12 text-center"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -444,17 +553,19 @@ export default function LandingPage() {
 							].map((badge, index) => (
 								<motion.div
 									key={index}
-									initial={{ opacity: 0, y: 20 }}
-									whileInView={{ opacity: 1, y: 0 }}
+									initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+									whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
 									viewport={{ once: true }}
 									transition={{
-										opacity: { delay: index * 0.1 },
-										type: "spring",
-										stiffness: 400,
-										damping: 17,
-										duration: 0.15
+										delay: index * 0.08,
+										duration: 0.6,
+										ease: [0.22, 1, 0.36, 1]
 									}}
-									whileHover={{ scale: 1.03, y: -8 }}
+									whileHover={{
+										scale: 1.03,
+										y: -8,
+										transition: { duration: 0.3, ease: "easeOut" }
+									}}
 									className="bg-gray-900 border border-purple-500/50 rounded-xl px-5 py-4 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-150 group cursor-pointer w-[220px] flex-shrink-0"
 								>
 									<div className="text-yellow-400 text-2xl font-bold mb-2 group-hover:scale-110 transition-transform duration-150">{badge.stars}</div>
@@ -472,9 +583,10 @@ export default function LandingPage() {
 			<section className="py-20 px-4">
 				<div className="max-w-4xl mx-auto text-center">
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
+						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+						whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						viewport={{ once: true, margin: "-100px" }}
+						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 					>
 						<h2 className="text-4xl md:text-6xl font-bold mb-6">
 							Ready to{' '}

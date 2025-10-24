@@ -40,7 +40,6 @@ export default function SigninFormDemo() {
 				}),
 			});
 
-			console.log("Signed in successfully");
 			router.push("/");
 		} catch (err: any) {
 			setError(err.message);
@@ -68,7 +67,6 @@ export default function SigninFormDemo() {
 				}),
 			});
 
-			console.log("Google sign-in success");
 			router.push("/");
 		} catch (err: any) {
 			setError(err.message);

@@ -91,7 +91,6 @@ export default function Home() {
 			if (user) {
 				const userId = await getDbUserId(user.uid);
 				setDbUserId(userId);
-				console.log('User ID loaded:', userId);
 			} else {
 				setDbUserId(null);
 			}
@@ -114,7 +113,6 @@ export default function Home() {
 					sortBy: sortOption,
 				});
 				setPosts(postsData);
-				console.log('Posts loaded:', postsData.length);
 			} catch (error) {
 				console.error("Error fetching posts:", error);
 			} finally {

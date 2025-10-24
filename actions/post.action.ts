@@ -12,8 +12,6 @@ export async function createPost(
   fileExtension?: string
 ) {
   try {
-    console.log("Server: Creating post for user with Firebase UID:", firebaseUid);
-
     const user = await prisma.user.findUnique({
       where: { firebaseId: firebaseUid }
     });
@@ -97,8 +95,6 @@ export async function getPosts(options?: GetPostsOptions) {
       sortBy = 'latest'
     } = options || {};
 
-    console.log('getPosts called with options:', { searchQuery, fileType, username, sortBy });
-
     // Build the where clause with AND logic
     const whereClause: any = {
       AND: []
@@ -131,8 +127,6 @@ export async function getPosts(options?: GetPostsOptions) {
     if (whereClause.AND.length === 0) {
       delete whereClause.AND;
     }
-
-    console.log('Final whereClause:', JSON.stringify(whereClause, null, 2));
 
     // Build orderBy clause
     let orderByClause: any = { createdAt: 'desc' }; // Default: latest first
@@ -214,14 +208,9 @@ export async function getPosts(options?: GetPostsOptions) {
       },
     });
 
-    console.log(`Found ${posts.length} posts matching filters`);
-    if (posts.length > 0) {
-      console.log('Sample post fileTypes:', posts.slice(0, 3).map(p => ({ id: p.id, fileType: p.fileType })));
-    }
-
     return posts;
   } catch (error) {
-    console.log("Error in getPosts", error);
+    console.error("Error in getPosts", error);
     throw new Error("Failed to fetch posts");
   }
 }
@@ -436,8 +425,6 @@ export async function deletePost(postId: string, firebaseUid: string) {
 // Delete comment (only by comment author)
 export async function deleteComment(commentId: string, firebaseUid: string) {
   try {
-    console.log("Server: Deleting comment with ID:", commentId);
-
     const user = await prisma.user.findUnique({
       where: { firebaseId: firebaseUid }
     });
@@ -475,8 +462,6 @@ export async function deleteComment(commentId: string, firebaseUid: string) {
 
 export async function rateComment(commentId: string, rating: number, firebaseUid: string) {
   try {
-    console.log("Server: Rating comment:", commentId, "with rating:", rating);
-
     // Find the user
     const user = await prisma.user.findUnique({
       where: { firebaseId: firebaseUid }
@@ -530,7 +515,7 @@ export async function rateComment(commentId: string, rating: number, firebaseUid
       const { updateUserBadges } = await import("@/actions/badge.action");
       await updateUserBadges(comment.author.id);
     } catch (error) {
-      console.log("Badge update will be available after migration:", error);
+      // Badge update will be available after migration
     }
 
     revalidatePath("/explore"); // purge the cache

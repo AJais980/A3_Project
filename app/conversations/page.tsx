@@ -122,15 +122,12 @@ export default function ConversationsPage() {
 
       channel
         .on('broadcast', { event: 'new_message' }, ({ payload }: any) => {
-          console.log('New message received, refreshing chats');
           loadChats();
         })
         .on('broadcast', { event: 'unread_count_updated' }, ({ payload }: any) => {
-          console.log('Unread count updated, refreshing chats');
           loadChats();
         })
         .on('broadcast', { event: 'messages_read' }, ({ payload }: any) => {
-          console.log('Messages marked as read, refreshing chats');
           loadChats();
         })
         .subscribe();
@@ -145,7 +142,6 @@ export default function ConversationsPage() {
   useEffect(() => {
     if (socket && dbUserId) {
       const handleUnreadCountUpdated = () => {
-        console.log('Socket.IO: Unread count updated, refreshing chats');
         loadChats();
       };
 

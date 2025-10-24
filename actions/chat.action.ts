@@ -141,16 +141,11 @@ export async function getChatsForUser(firebaseUid: string) {
         },
         messages: {
           where: {
-            AND: [
-              { isDeleted: { not: true } },
-              {
-                NOT: {
-                  deletedForUsers: {
-                    has: user.id
-                  }
-                }
+            NOT: {
+              deletedForUsers: {
+                has: user.id
               }
-            ]
+            }
           },
           include: {
             sender: {
@@ -217,16 +212,11 @@ export async function getChatById(chatId: string, firebaseUid: string) {
         },
         messages: {
           where: {
-            AND: [
-              { isDeleted: { not: true } },
-              {
-                NOT: {
-                  deletedForUsers: {
-                    has: user.id
-                  }
-                }
+            NOT: {
+              deletedForUsers: {
+                has: user.id
               }
-            ]
+            }
           },
           include: {
             sender: {
@@ -362,7 +352,7 @@ export async function sendMessage(chatId: string, content: string, firebaseUid: 
     // Update chat's updatedAt timestamp and increment unread count for receiver
     await prisma.chat.update({
       where: { id: chatId },
-      data: { 
+      data: {
         updatedAt: new Date(),
         ...(isUser1Receiver ? { user1UnreadCount: { increment: 1 } } : { user2UnreadCount: { increment: 1 } })
       }
@@ -478,9 +468,12 @@ export async function deleteMessage(messageId: string, firebaseUid: string, dele
         return { success: false, error: "You can only delete messages for everyone within 1 hour" };
       }
 
-      // Completely remove the message from database
-      await prisma.message.delete({
-        where: { id: messageId }
+      // Mark message as deleted for everyone (don't actually delete from database)
+      await prisma.message.update({
+        where: { id: messageId },
+        data: {
+          isDeleted: true
+        }
       });
     } else {
       // Delete for current user only
@@ -623,7 +616,7 @@ export async function addReaction(messageId: string, emoji: string, firebaseUid:
         });
         return { success: true, removed: true, reactionId: existingReaction.id };
       }
-      
+
       // Update existing reaction with new emoji
       const reaction = await (prisma as any).reaction.update({
         where: { id: existingReaction.id },

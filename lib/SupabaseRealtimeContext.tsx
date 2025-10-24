@@ -76,7 +76,6 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
           const { getDbUserId } = await import('@/actions/user.action');
           const id = await getDbUserId(user.uid);
           setDbUserId(id);
-          console.log('Database user ID fetched:', id);
         } catch (error) {
           console.error('Error fetching database user ID:', error);
         }
@@ -93,20 +92,18 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
       // Set a timeout to check if Socket.IO connects
       const connectionTimeout = setTimeout(() => {
         if (!socketInstance.connected) {
-          console.log('Socket.IO connection timeout, switching to Supabase Presence');
           setUseSupabasePresence(true);
         }
       }, 5000); // 5 second timeout
 
       const handleConnect = () => {
-        console.log('Socket.IO connected:', socketInstance.id);
         clearTimeout(connectionTimeout);
         setUseSupabasePresence(false);
         socketInstance.emit('join', dbUserId);
       };
 
       const handleDisconnect = () => {
-        console.log('Socket.IO disconnected');
+        // Socket disconnected
       };
 
       const handleConnectError = (error: any) => {
@@ -129,7 +126,6 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 
       // Listen for user status changes
       const handleUserStatusChanged = (data: { userId: string; isOnline: boolean; lastSeen: Date | null }) => {
-        console.log('User status changed:', data);
         setUserStatuses(prev => ({
           ...prev,
           [data.userId]: {
@@ -141,7 +137,6 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 
       // Listen for user status responses
       const handleUserStatuses = (statuses: Record<string, { isOnline: boolean; lastSeen: Date | null; userId: string }>) => {
-        console.log('User statuses received:', statuses);
         const newStatuses: Record<string, { isOnline: boolean; lastSeen?: Date | null }> = {};
         Object.values(statuses).forEach(status => {
           newStatuses[status.userId] = {
@@ -173,11 +168,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     if (supabase && user && isConnected) {
       const channel = supabase.channel(`user:${user.uid}`);
 
-      channel.subscribe((status: string) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('User channel subscribed');
-        }
-      });
+      channel.subscribe();
 
       setUserChannel(channel);
 
@@ -191,8 +182,6 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
   // Setup Supabase Presence for online status (fallback for Vercel/serverless)
   useEffect(() => {
     if (supabase && dbUserId && useSupabasePresence) {
-      console.log('Using Supabase Presence for online status');
-
       const channel = supabase.channel('online-users', {
         config: {
           presence: {
@@ -204,7 +193,6 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
       channel
         .on('presence', { event: 'sync' }, () => {
           const state = channel.presenceState();
-          console.log('Presence sync:', state);
 
           // Update user statuses based on presence
           const newStatuses: Record<string, { isOnline: boolean; lastSeen?: Date | null }> = {};
@@ -217,14 +205,12 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
           setUserStatuses(newStatuses);
         })
         .on('presence', { event: 'join' }, ({ key, newPresences }: any) => {
-          console.log('User joined:', key);
           setUserStatuses(prev => ({
             ...prev,
             [key]: { isOnline: true, lastSeen: null }
           }));
         })
         .on('presence', { event: 'leave' }, ({ key, leftPresences }: any) => {
-          console.log('User left:', key);
           setUserStatuses(prev => ({
             ...prev,
             [key]: { isOnline: false, lastSeen: new Date() }
@@ -232,7 +218,6 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
         })
         .subscribe(async (status: string) => {
           if (status === 'SUBSCRIBED') {
-            console.log('Presence channel subscribed');
             // Track this user as online
             await channel.track({
               user_id: dbUserId,
@@ -255,17 +240,12 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 
     // Check if already subscribed to this chat
     if (channels.has(chatId)) {
-      console.log(`Already subscribed to chat: ${chatId}`);
       return;
     }
 
     const channel = supabase.channel(`chat:${chatId}`);
 
-    channel.subscribe((status: string) => {
-      if (status === 'SUBSCRIBED') {
-        console.log(`Subscribed to chat: ${chatId}`);
-      }
-    });
+    channel.subscribe();
 
     setChannels(prev => new Map(prev).set(chatId, channel));
 
@@ -284,7 +264,6 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
         newMap.delete(chatId);
         return newMap;
       });
-      console.log(`Unsubscribed from chat: ${chatId}`);
     }
 
     // Also leave via Socket.IO

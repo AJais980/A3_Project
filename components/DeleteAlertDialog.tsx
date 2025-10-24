@@ -33,28 +33,43 @@ export function DeleteAlertDialog({
         <Button
           variant="ghost"
           size="sm"
-          className="text-[hsl(var(--muted-foreground))] hover:text-red-500 -mr-2"
+          className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 rounded-lg p-2"
+          disabled={isDeleting}
         >
           {isDeleting ? (
-            <Loader2Icon className="size-4 animate-spin" />
+            <Loader2Icon className="w-5 h-5 animate-spin" />
           ) : (
-            <Trash2Icon className="size-4" />
+            <Trash2Icon className="w-5 h-5" />
           )}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-gray-900 border-gray-700">
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogTitle className="text-white">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-gray-400">
+            {description}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="bg-gray-800 hover:bg-gray-700 text-white border-gray-700">
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onDelete}
-            className="bg-red-500 hover:bg-red-600"
+            className="bg-red-600 hover:bg-red-700 text-white"
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? (
+              <span className="flex items-center space-x-2">
+                <Loader2Icon className="w-4 h-4 animate-spin" />
+                <span>Deleting...</span>
+              </span>
+            ) : (
+              <span className="flex items-center space-x-2">
+                <Trash2Icon className="w-4 h-4" />
+                <span>Delete</span>
+              </span>
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

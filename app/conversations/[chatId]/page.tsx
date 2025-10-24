@@ -158,33 +158,48 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     }
   }, [chat, dbUserId, requestUserStatus]);
 
-  // Auto-scroll to bottom on initial load only
+  // Reset scroll state when chatId changes
   useEffect(() => {
-    if (chat?.messages && chat.messages.length > 0 && !hasScrolledToBottom) {
-      // Directly scroll the container to the bottom with multiple attempts
-      const scrollToBottom = () => {
-        if (messagesContainerRef.current) {
-          const container = messagesContainerRef.current;
-          container.scrollTop = container.scrollHeight;
+    setHasScrolledToBottom(false);
+  }, [chatId]);
+
+  // Auto-scroll to bottom on initial load - Wait for ref to exist
+  useEffect(() => {
+    if (!isLoading && chat?.messages && chat.messages.length > 0 && !hasScrolledToBottom) {
+      let attempts = 0;
+      const maxAttempts = 20; // Try for 2 seconds (20 * 100ms)
+
+      const waitForRefAndScroll = () => {
+        attempts++;
+        const chatbox = messagesContainerRef.current;
+
+        if (chatbox) {
+          // Ref is available, scroll now
+          chatbox.scrollTop = chatbox.scrollHeight;
+          setHasScrolledToBottom(true);
+
+          // Do a few more attempts to ensure it sticks (images loading, etc.)
+          setTimeout(() => {
+            if (chatbox) chatbox.scrollTop = chatbox.scrollHeight;
+          }, 200);
+          setTimeout(() => {
+            if (chatbox) chatbox.scrollTop = chatbox.scrollHeight;
+          }, 500);
+          setTimeout(() => {
+            if (chatbox) chatbox.scrollTop = chatbox.scrollHeight;
+          }, 1000);
+        } else if (attempts < maxAttempts) {
+          // Ref not available yet, try again
+          setTimeout(waitForRefAndScroll, 100);
+        } else {
+          setHasScrolledToBottom(true); // Mark as done to prevent infinite loop
         }
       };
 
-      // Multiple attempts at different intervals to ensure scroll happens
-      scrollToBottom(); // Immediate
-      const timer1 = setTimeout(scrollToBottom, 100);
-      const timer2 = setTimeout(scrollToBottom, 300);
-      const timer3 = setTimeout(() => {
-        scrollToBottom();
-        setHasScrolledToBottom(true);
-      }, 500);
-
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-        clearTimeout(timer3);
-      };
+      // Start checking immediately
+      waitForRefAndScroll();
     }
-  }, [chat?.messages, hasScrolledToBottom]);
+  }, [isLoading, chat?.messages?.length, hasScrolledToBottom]);
 
   // Auto-scroll to bottom when new messages arrive (only if already near bottom)
   useEffect(() => {
@@ -689,7 +704,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
           <div
             ref={messagesContainerRef}
             onScroll={handleScroll}
-            className="absolute inset-0 overflow-y-auto overflow-x-hidden scroll-smooth p-4 md:p-6 chat-scrollbar"
+            className="chatbox-container absolute inset-0 overflow-y-auto overflow-x-hidden scroll-smooth p-4 md:p-6 chat-scrollbar"
           >
             <div className="max-w-4xl mx-auto space-y-1">
               {chat.messages.length === 0 ? (

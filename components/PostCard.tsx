@@ -48,7 +48,6 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
 
   // Update like status when dbUserId changes
   useEffect(() => {
-    console.log("DB USER ID: " + dbUserId)
     setHasLiked(post.likes.some(like => like.userId === dbUserId));
   }, [dbUserId, post.likes]);
 
@@ -320,9 +319,9 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
             <button
               onClick={handleLike}
               disabled={isLiking}
-              className={`flex items-center gap-2 transition-colors ${hasLiked
-                ? "text-red-400"
-                : "text-gray-400 hover:text-red-400"
+              className={`flex items-center gap-2 transition-colors cursor-pointer ${hasLiked
+                ? "text-red-500"
+                : "text-gray-400 hover:text-red-500"
                 }`}
             >
               <HeartIcon className={`w-5 h-5 ${hasLiked ? "fill-current" : ""}`} />
@@ -334,7 +333,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                 const provider = new GoogleAuthProvider();
                 signInWithPopup(auth, provider);
               }}
-              className="flex items-center gap-2 text-gray-400 hover:text-red-400 transition-colors"
+              className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
             >
               <HeartIcon className="w-5 h-5" />
               <span className="text-sm">{optimisticLikes}</span>
@@ -344,9 +343,9 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
           {/* Comment Button */}
           <button
             onClick={() => setShowComments((prev) => !prev)}
-            className={`flex items-center gap-2 transition-colors ${showComments
-              ? "text-blue-400"
-              : "text-gray-400 hover:text-blue-400"
+            className={`flex items-center gap-2 transition-colors cursor-pointer ${showComments
+              ? "text-blue-500"
+              : "text-gray-400 hover:text-blue-500"
               }`}
           >
             <MessageCircleIcon className={`w-5 h-5 ${showComments ? "fill-current" : ""}`} />
@@ -408,7 +407,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                             <button
                               onClick={() => handleDeleteComment(comment.id)}
                               disabled={deletingCommentId === comment.id}
-                              className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all p-1.5 rounded-full hover:bg-gray-700 disabled:opacity-50"
+                              className="text-gray-500 hover:text-red-400 transition-all p-1.5 rounded-full hover:bg-gray-700 disabled:opacity-50"
                               title="Delete comment"
                             >
                               <TrashIcon className="w-3.5 h-3.5" />
@@ -559,12 +558,6 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                                         {reply.author.name || reply.author.username}
                                       </Link>
                                     </UserHoverCard>
-                                    {reply.author.designation && (
-                                      <DesignationBadge
-                                        designation={reply.author.designation as 'STUDENT' | 'TEACHER' | 'WORKING_PROFESSIONAL'}
-                                        size="sm"
-                                      />
-                                    )}
                                   </div>
                                   <div className="flex items-center space-x-2">
                                     <span className="text-xs text-gray-500 flex-shrink-0">
@@ -575,7 +568,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                                       <button
                                         onClick={() => handleDeleteComment(reply.id)}
                                         disabled={deletingCommentId === reply.id}
-                                        className="opacity-0 group-hover/reply:opacity-100 text-gray-500 hover:text-red-400 transition-all p-1.5 rounded-full hover:bg-gray-700 disabled:opacity-50"
+                                        className="text-gray-500 hover:text-red-400 transition-all p-1.5 rounded-full hover:bg-gray-700 disabled:opacity-50"
                                         title="Delete reply"
                                       >
                                         <TrashIcon className="w-3.5 h-3.5" />

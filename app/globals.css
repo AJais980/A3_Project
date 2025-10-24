@@ -66,6 +66,66 @@ body {
 	background-color: #060010;
 }
 
+/* ===== Global Custom Scrollbar - Professional & Unique ===== */
+/* For Firefox */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(139, 92, 246, 0.6) rgba(17, 24, 39, 0.5);
+}
+
+/* For Chrome, Edge, Safari */
+*::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+	background: rgba(17, 24, 39, 0.3);
+	border-radius: 8px;
+	margin: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg,
+			rgba(139, 92, 246, 0.5) 0%,
+			rgba(124, 58, 237, 0.7) 50%,
+			rgba(139, 92, 246, 0.5) 100%);
+	border-radius: 8px;
+	border: 2px solid rgba(6, 0, 16, 0.4);
+	transition: all 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(180deg,
+			rgba(167, 139, 250, 0.7) 0%,
+			rgba(139, 92, 246, 0.9) 50%,
+			rgba(167, 139, 250, 0.7) 100%);
+	border-color: rgba(139, 92, 246, 0.3);
+}
+
+*::-webkit-scrollbar-thumb:active {
+	background: linear-gradient(180deg,
+			rgba(139, 92, 246, 0.9) 0%,
+			rgba(124, 58, 237, 1) 50%,
+			rgba(139, 92, 246, 0.9) 100%);
+}
+
+*::-webkit-scrollbar-corner {
+	background: rgba(17, 24, 39, 0.3);
+}
+
+/* Special styling for body scrollbar */
+body::-webkit-scrollbar {
+	width: 12px;
+}
+
+body::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg,
+			rgba(139, 92, 246, 0.6) 0%,
+			rgba(124, 58, 237, 0.8) 50%,
+			rgba(139, 92, 246, 0.6) 100%);
+}
+
 .fixed.inset-0.z-0 {
 	height: 100vh;
 	width: 100vw;

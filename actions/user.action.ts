@@ -30,7 +30,7 @@ export async function syncUser(
 
     return dbUser;
   } catch (error) {
-    console.log("Error in syncUser", error);
+    console.error("Error in syncUser", error);
   }
 }
 
@@ -103,7 +103,7 @@ export async function getRandomUsers(firebaseUid: string) {
 
     return randomUsers;
   } catch (error) {
-    console.log("Error fetching random users", error);
+    console.error("Error fetching random users", error);
     return [];
   }
 }
@@ -158,7 +158,7 @@ export async function toggleFollow(targetUserId: string, firebaseUid: string) {
     revalidatePath("/");
     return { success: true };
   } catch (error) {
-    console.log("Error in toggleFollow", error);
+    console.error("Error in toggleFollow", error);
     return { success: false, error: "Error toggling follow" };
   }
 }

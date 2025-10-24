@@ -27,43 +27,23 @@ function CreatePost({ onPostCreated }: Props) {
 	const [showFileUpload, setShowFileUpload] = useState(false);
 
 	const handleSubmit = async () => {
-		console.log("Starting post creation...");
-		console.log("Current user:", user);
-
 		if (!content.trim() && !fileUrl) {
-			console.log("No content or file provided");
 			return;
 		}
 
 		if (!user?.uid) {
-			console.log("No user found");
 			toast.error("Please sign in to create a post");
 			return;
 		}
 
 		setIsPosting(true);
 		try {
-			console.log("Calling createPost with:", {
-				content: content.trim(),
-				fileUrl,
-				fileType,
-				fileName,
-				fileExtension,
-				userId: user.uid
-			});
-
 			const result = await createPost(content.trim(), fileUrl, user.uid, fileType, fileName, fileExtension);
-			console.log("Create post result:", result);
 
 			if (result?.success) {
-				console.log("Post created successfully:", result.post);
-
 				// Update the UI with the new post
 				if (onPostCreated) {
-					console.log("Calling onPostCreated with:", result.post);
 					onPostCreated(result.post);
-				} else {
-					console.warn("onPostCreated callback is not defined!");
 				}
 
 				// Clear the form
@@ -124,19 +104,15 @@ function CreatePost({ onPostCreated }: Props) {
 									endpoint="postMedia"
 									value={fileUrl}
 									onChange={(url, type, name, extension, category) => {
-										console.log("CreatePost received:", { url, type, name, extension, category });
 										setFileUrl(url);
 										setFileName(name || "");
 										setFileExtension(extension || "");
 
 										if (category === "code") {
-											console.log("Setting fileType to code");
 											setFileType("code");
 										} else if (type?.startsWith('application/pdf')) {
-											console.log("Setting fileType to pdf");
 											setFileType("pdf");
 										} else {
-											console.log("Setting fileType to image");
 											setFileType("image");
 										}
 

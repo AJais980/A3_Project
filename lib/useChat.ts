@@ -409,8 +409,8 @@ export function useChat(chatId: string) {
           });
         }
 
-        // Emit deletion via WebSocket to other users
-        if (isConnected && emitDeleteMessage) {
+        // Emit deletion via WebSocket to other users ONLY for delete for everyone
+        if (deleteForEveryone && isConnected && emitDeleteMessage) {
           emitDeleteMessage(chatId, messageId, deleteForEveryone);
         }
         return { success: true };

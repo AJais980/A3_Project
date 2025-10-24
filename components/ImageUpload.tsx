@@ -29,10 +29,8 @@ function ImageUpload({ endpoint, onChange, value }: ImageUploadProps) {
       className="border-none custom-upload-dropzone"
       endpoint={endpoint as any}
       onClientUploadComplete={(res: any) => {
-        console.log("Upload completed:", res);
         if (res?.[0]) {
           const response = res[0];
-          console.log("Response object:", response);
 
           // Extract file info from the response
           const fileName = response.name || response.fileName || 'unknown';
@@ -52,8 +50,6 @@ function ImageUpload({ endpoint, onChange, value }: ImageUploadProps) {
             category = 'code';
           }
 
-          console.log("Extracted info:", { fileName, extension, category, fileType });
-
           onChange(
             fileUrl,
             fileType,
@@ -67,7 +63,7 @@ function ImageUpload({ endpoint, onChange, value }: ImageUploadProps) {
         console.error("Upload error:", error);
       }}
       onUploadBegin={(name: string) => {
-        console.log("Upload started for:", name);
+        // Upload started
       }}
     />
   );

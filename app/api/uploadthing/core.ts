@@ -23,8 +23,6 @@ export const ourFileRouter = {
       return { userId: "test-user" };
     })
     .onUploadComplete(async ({ file }) => {
-      console.log("Upload completed for file:", file.name, "URL:", file.ufsUrl);
-
       // Get file extension
       const extension = file.name.split('.').pop()?.toLowerCase() || '';
 
@@ -45,8 +43,6 @@ export const ourFileRouter = {
         fileCategory,
         fileExtension: extension
       };
-
-      console.log("Returning from onUploadComplete:", result);
 
       return result;
     }),

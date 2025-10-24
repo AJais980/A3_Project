@@ -143,8 +143,8 @@ export function BadgeProgress({ userBadges, averageRating, totalRatings }: Badge
 						<div
 							key={badge.type}
 							className={`p-3 rounded-lg border ${isEarned
-								? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-								: 'bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-700'
+								? 'bg-green-900/20 border-green-800'
+								: 'bg-gray-900/20 border-gray-700'
 								}`}
 						>
 							<div className="flex items-center gap-3">
@@ -155,16 +155,16 @@ export function BadgeProgress({ userBadges, averageRating, totalRatings }: Badge
 								/>
 								<div className="flex-1">
 									<div className="flex items-center justify-between">
-										<h4 className={`font-medium ${isEarned ? 'text-green-700 dark:text-green-300' : 'text-gray-700 dark:text-gray-300'
+										<h4 className={`font-medium ${isEarned ? 'text-green-300' : 'text-gray-300'
 											}`}>
 											{badge.name}
 											{isEarned && <span className="ml-2 text-green-600">✓</span>}
 										</h4>
 									</div>
-									<p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+									<p className="text-sm text-gray-400 mt-1">
 										{badge.description}
 									</p>
-									<div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+									<div className="text-xs text-gray-400 mt-2">
 										Requires: {badge.requirements.minRating}⭐ avg rating, {badge.requirements.minRatingsCount} ratings
 									</div>
 									{!isEarned && (

@@ -42,7 +42,6 @@ export default function SignupFormDemo() {
 				}),
 			});
 
-			console.log("Account created for:", firstname, lastname);
 			router.push("/");
 		} catch (err: any) {
 			setError(err.message);
@@ -70,7 +69,6 @@ export default function SignupFormDemo() {
 				}),
 			});
 
-			console.log("Google signup success");
 			router.push("/");
 		} catch (err: any) {
 			setError(err.message);

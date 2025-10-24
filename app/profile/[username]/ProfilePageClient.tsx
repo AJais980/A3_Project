@@ -3,6 +3,8 @@
 import { getProfileByUsername, getUserPosts, updateProfile } from "@/actions/profile.action";
 import { toggleFollow } from "@/actions/user.action";
 import { getUserStats } from "@/actions/badge.action";
+import { createOrGetChat } from "@/actions/chat.action";
+import { getDbUserId } from "@/actions/user.action";
 import DesignationBadge from "@/components/DesignationBadge";
 import PostCard from "@/components/PostCard";
 import { BadgeList, BadgeProgress } from "@/components/BadgeDisplay";
@@ -20,6 +22,7 @@ import { Input } from "@/components/ui/input-copy";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/useAuth";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   CalendarIcon,
@@ -27,8 +30,9 @@ import {
   FileTextIcon,
   LinkIcon,
   MapPinIcon,
+  MessageCircleIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
 type User = Awaited<ReturnType<typeof getProfileByUsername>>;
@@ -49,9 +53,12 @@ function ProfilePageClient({
   badgeStats,
 }: ProfilePageClientProps) {
   const { user: currentUser, loading } = useAuth();
+  const router = useRouter();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [currentUserDbId, setCurrentUserDbId] = useState<string | null>(null);
 
   const [editForm, setEditForm] = useState({
     name: user.name || "",
@@ -60,6 +67,17 @@ function ProfilePageClient({
     website: user.website || "",
     designation: user.designation || "",
   });
+
+  // Fetch current user's database ID
+  useEffect(() => {
+    const fetchCurrentUserDbId = async () => {
+      if (currentUser) {
+        const dbId = await getDbUserId(currentUser.uid);
+        setCurrentUserDbId(dbId);
+      }
+    };
+    fetchCurrentUserDbId();
+  }, [currentUser]);
 
   const handleEditSubmit = async () => {
     if (!currentUser) return;
@@ -84,6 +102,41 @@ function ProfilePageClient({
       toast.error("Failed to update follow status");
     } finally {
       setIsUpdatingFollow(false);
+    }
+  };
+
+  const handleChatClick = async () => {
+    if (!currentUser || isChatLoading) return;
+
+    setIsChatLoading(true);
+    try {
+      // Get current user's database ID
+      const currentDbUserId = await getDbUserId(currentUser.uid);
+
+      if (!currentDbUserId) {
+        toast.error("Unable to identify current user.");
+        return;
+      }
+
+      // Prevent chatting with oneself
+      if (currentDbUserId === user.id) {
+        toast.error("You cannot chat with yourself.");
+        return;
+      }
+
+      // Call the server action to create or get the chat
+      const result = await createOrGetChat(currentDbUserId, user.id);
+
+      if (result.success && result.chat) {
+        router.push(`/conversations/${result.chat.id}`);
+      } else {
+        toast.error(result.error || "Failed to start chat.");
+      }
+    } catch (error) {
+      console.error("Error initiating chat:", error);
+      toast.error("An unexpected error occurred while starting chat.");
+    } finally {
+      setIsChatLoading(false);
     }
   };
 
@@ -196,16 +249,35 @@ function ProfilePageClient({
                     Edit Profile
                   </Button>
                 ) : (
-                  <Button
-                    className={`w-full sm:w-auto px-4 sm:px-6 py-2 font-semibold rounded-lg transition-all mb-4 text-sm sm:text-base ${isFollowing
-                      ? "bg-gray-700 hover:bg-gray-600 text-white"
-                      : "bg-purple-600 hover:bg-purple-700 text-white"
-                      }`}
-                    onClick={handleFollow}
-                    disabled={isUpdatingFollow}
-                  >
-                    {isFollowing ? "Unfollow" : "Follow"}
-                  </Button>
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      className={`flex-1 sm:flex-initial sm:w-auto px-4 sm:px-6 py-2 font-semibold rounded-lg transition-all text-sm sm:text-base ${isFollowing
+                        ? "bg-gray-700 hover:bg-gray-600 text-white"
+                        : "bg-purple-600 hover:bg-purple-700 text-white"
+                        }`}
+                      onClick={handleFollow}
+                      disabled={isUpdatingFollow}
+                    >
+                      {isFollowing ? "Unfollow" : "Follow"}
+                    </Button>
+                    <Button
+                      onClick={handleChatClick}
+                      disabled={isChatLoading}
+                      className="flex-1 sm:flex-initial sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-sm sm:text-base"
+                    >
+                      {isChatLoading ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Starting...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <MessageCircleIcon className="w-4 h-4" />
+                          <span>Chat</span>
+                        </div>
+                      )}
+                    </Button>
+                  </div>
                 )}
 
                 {/* Additional Info */}
@@ -269,7 +341,7 @@ function ProfilePageClient({
                 <div className="space-y-6 overflow-hidden">
                   {posts.map((post) => (
                     <div key={post.id} className="w-full max-w-[calc(100vw-1rem)] sm:max-w-none mx-auto overflow-hidden">
-                      <PostCard post={post} dbUserId={user.id} />
+                      <PostCard post={post} dbUserId={currentUserDbId} />
                     </div>
                   ))}
                 </div>

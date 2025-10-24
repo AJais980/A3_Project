@@ -50,7 +50,6 @@ export async function updateUserBadges(userId: string) {
 
 		// Check if badge system is available
 		if (!isBadgeSystemAvailable()) {
-			console.log("Badge system not available. Please regenerate Prisma client: npx prisma generate");
 			return {
 				averageRating,
 				totalRatings,
@@ -95,7 +94,6 @@ export async function updateUserBadges(userId: string) {
 		// If error is related to missing table or client, provide helpful message
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (errorMessage.includes('UserBadge') || errorMessage.includes('userBadge')) {
-			console.log("Badge system not available. Run: npx prisma generate");
 			const { averageRating, totalRatings } = await calculateUserStats(userId);
 			return {
 				averageRating,
@@ -113,7 +111,6 @@ export async function getUserBadges(userId: string) {
 	try {
 		// Check if badge system is available
 		if (!isBadgeSystemAvailable()) {
-			console.log("Badge system not available. Please regenerate Prisma client: npx prisma generate");
 			return [];
 		}
 
@@ -129,7 +126,6 @@ export async function getUserBadges(userId: string) {
 		// If error is related to missing table or client, return empty array
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (errorMessage.includes('UserBadge') || errorMessage.includes('userBadge')) {
-			console.log("Badge system not available. Run: npx prisma generate");
 			return [];
 		}
 
