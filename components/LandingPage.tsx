@@ -168,7 +168,7 @@ export default function LandingPage() {
 			<Navigation />
 			{/* "relative min-h-screen flex items-center justify-center pt-8 md:pt-20 pb-16 px-4 overflow-hidden" */}
 			{/* Hero Section */}
-			<section className="relative min-h-screen flex items-center justify-center pt-2 md:pt-20 pb-14 px-4 overflow-hidden">
+			<section className="relative flex items-center justify-center mt-30 md:mt-36 pb-28 md:pb-24 px-4 overflow-hidden">
 				{/* Animated Background */}
 				<div className="absolute inset-0 overflow-hidden">
 					<div className="absolute w-96 h-96 bg-purple-600/20 rounded-full blur-3xl top-20 -left-20 animate-pulse"></div>
@@ -224,7 +224,7 @@ export default function LandingPage() {
 				<motion.div
 					animate={{ y: [0, 10, 0] }}
 					transition={{ repeat: Infinity, duration: 2 }}
-					className="absolute bottom-24 md:bottom-8 left-1/2 transform -translate-x-1/2"
+					className="absolute bottom-6 md:bottom-4 pb-2 left-1/2 transform -translate-x-1/2"
 				>
 					<div className="w-6 h-10 border-2 border-gray-600 rounded-full flex items-start justify-center p-2">
 						<div className="w-1 h-3 bg-gradient-to-b from-purple-500 to-transparent rounded-full"></div>
