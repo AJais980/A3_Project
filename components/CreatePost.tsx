@@ -76,7 +76,7 @@ function CreatePost({ onPostCreated }: Props) {
 						</Avatar>
 						<Textarea
 							placeholder="What's on your mind?"
-							className="min-h-[100px] resize-none bg-transparent border-none focus-visible:ring-0 p-0 text-base text-white placeholder-gray-400"
+							className="min-h-25 resize-none bg-transparent border-none focus-visible:ring-0 p-0 text-base text-white placeholder-gray-400"
 							value={content}
 							onChange={(e) => setContent(e.target.value)}
 							disabled={isPosting}
