@@ -163,7 +163,7 @@ export default function LandingPage() {
 	];
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white overflow-hidden">
+		<div className="min-h-screen bg-linear-to-br from-gray-950 via-gray-900 to-black text-white overflow-hidden">
 			{/* Existing Navigation Component */}
 			<Navigation />
 			{/* "relative min-h-screen flex items-center justify-center pt-8 md:pt-20 pb-16 px-4 overflow-hidden" */}
@@ -191,7 +191,7 @@ export default function LandingPage() {
 						</div>
 
 						<h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight">
-							<span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+							<span className="bg-linear-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
 								Elevate Your Skills
 							</span>
 							<br />
@@ -205,7 +205,7 @@ export default function LandingPage() {
 						<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 							<Link
 								href={user ? "/explore" : "/signup"}
-								className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-2xl shadow-purple-500/50 flex items-center space-x-2 text-lg font-semibold"
+								className="group px-8 py-4 bg-linear-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-2xl shadow-purple-500/50 flex items-center space-x-2 text-lg font-semibold"
 							>
 								<span>Start for Free</span>
 								<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -227,7 +227,7 @@ export default function LandingPage() {
 					className="absolute bottom-6 md:bottom-4 pb-2 left-1/2 transform -translate-x-1/2"
 				>
 					<div className="w-6 h-10 border-2 border-gray-600 rounded-full flex items-start justify-center p-2">
-						<div className="w-1 h-3 bg-gradient-to-b from-purple-500 to-transparent rounded-full"></div>
+						<div className="w-1 h-3 bg-linear-to-b from-purple-500 to-transparent rounded-full"></div>
 					</div>
 				</motion.div>
 			</section>
@@ -243,7 +243,7 @@ export default function LandingPage() {
 						className="text-center mb-16"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
-							<span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							<span className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
 								Powerful Features
 							</span>
 						</h2>
@@ -270,7 +270,7 @@ export default function LandingPage() {
 								}}
 								className="group bg-gray-900/50 backdrop-blur-lg border border-gray-800 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10"
 							>
-								<div className={`w-14 h-14 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+								<div className={`w-14 h-14 bg-linear-to-r ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
 									<feature.icon className="w-7 h-7 text-white" />
 								</div>
 								<h3 className="text-2xl font-bold mb-3 text-white">{feature.title}</h3>
@@ -282,7 +282,7 @@ export default function LandingPage() {
 			</section>
 
 			{/* Use Cases Section */}
-			<section className="py-20 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
+			<section className="py-20 px-4 bg-linear-to-b from-transparent to-gray-900/50">
 				<div className="max-w-7xl mx-auto">
 					<motion.div
 						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
@@ -292,7 +292,7 @@ export default function LandingPage() {
 						className="text-center mb-16"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
-							<span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							<span className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
 								Perfect For Every Use Case
 							</span>
 						</h2>
@@ -318,9 +318,9 @@ export default function LandingPage() {
 									scale: 1.02,
 									transition: { duration: 0.3, ease: "easeOut" }
 								}}
-								className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 text-center hover:border-purple-500/50 transition-all"
+								className="bg-linear-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 text-center hover:border-purple-500/50 transition-all"
 							>
-								<div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+								<div className="w-16 h-16 bg-linear-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
 									<useCase.icon className="w-8 h-8 text-white" />
 								</div>
 								<h3 className="text-2xl font-bold mb-3">{useCase.title}</h3>
@@ -342,7 +342,7 @@ export default function LandingPage() {
 						className="text-center mb-20"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
-							<span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							<span className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
 								How PeerPulse Works
 							</span>
 						</h2>
@@ -397,13 +397,13 @@ export default function LandingPage() {
 											y: -8,
 											transition: { duration: 0.4, ease: "easeOut" }
 										}}
-										className="relative bg-gradient-to-b from-gray-800/50 to-gray-900/50 backdrop-blur-lg border border-gray-700/50 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 h-full group"
+										className="relative bg-linear-to-b from-gray-800/50 to-gray-900/50 backdrop-blur-lg border border-gray-700/50 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300 h-full group"
 									>
 										{/* Step Number Badge */}
 										<div className="absolute -top-4 left-8">
 											<div className="relative">
-												<div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
-												<div className="relative px-4 py-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center border-2 border-gray-900 shadow-xl">
+												<div className="absolute inset-0 bg-linear-to-r from-purple-600 to-pink-600 rounded-lg blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
+												<div className="relative px-4 py-2 bg-linear-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center border-2 border-gray-900 shadow-xl">
 													<span className="text-sm font-bold text-white">STEP {item.step}</span>
 												</div>
 											</div>
@@ -411,7 +411,7 @@ export default function LandingPage() {
 
 										{/* Icon */}
 										<div className="mt-8 mb-6">
-											<div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+											<div className="w-16 h-16 bg-linear-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
 												<item.icon className="w-8 h-8 text-purple-400 group-hover:text-purple-300 transition-colors" />
 											</div>
 										</div>
@@ -427,8 +427,8 @@ export default function LandingPage() {
 										</div>
 
 										{/* Decorative Elements */}
-										<div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-										<div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-tr-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+										<div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-purple-500/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+										<div className="absolute bottom-0 left-0 w-20 h-20 bg-linear-to-tr from-pink-500/10 to-transparent rounded-tr-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 									</motion.div>
 
 									{/* Arrow Between Cards - Desktop Only */}
@@ -452,7 +452,7 @@ export default function LandingPage() {
 			</section>
 
 			{/* Team Section */}
-			<section id="team" className="py-20 px-4 bg-gradient-to-b from-gray-900/50 to-transparent">
+			<section id="team" className="py-20 px-4 bg-linear-to-b from-gray-900/50 to-transparent">
 				<div className="max-w-7xl mx-auto">
 					<motion.div
 						initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
@@ -462,7 +462,7 @@ export default function LandingPage() {
 						className="text-center mb-16"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
-							<span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							<span className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
 								Meet Our Team
 							</span>
 						</h2>
@@ -533,10 +533,10 @@ export default function LandingPage() {
 						whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
 						viewport={{ once: true, margin: "-100px" }}
 						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-						className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-3xl p-12 text-center"
+						className="bg-linear-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-3xl p-12 text-center"
 					>
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
-							<span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							<span className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
 								Earn Recognition
 							</span>
 						</h2>
@@ -566,7 +566,7 @@ export default function LandingPage() {
 										y: -8,
 										transition: { duration: 0.3, ease: "easeOut" }
 									}}
-									className="bg-gray-900 border border-purple-500/50 rounded-xl px-5 py-4 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-150 group cursor-pointer w-[220px] flex-shrink-0"
+									className="bg-gray-900 border border-purple-500/50 rounded-xl px-5 py-4 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-150 group cursor-pointer w-55 shrink-0"
 								>
 									<div className="text-yellow-400 text-2xl font-bold mb-2 group-hover:scale-110 transition-transform duration-150">{badge.stars}</div>
 									<div className="text-base font-semibold text-white mb-2 leading-tight group-hover:text-purple-300 transition-colors duration-150">{badge.name}</div>
@@ -590,7 +590,7 @@ export default function LandingPage() {
 					>
 						<h2 className="text-4xl md:text-6xl font-bold mb-6">
 							Ready to{' '}
-							<span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							<span className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
 								Level Up?
 							</span>
 						</h2>
@@ -599,7 +599,7 @@ export default function LandingPage() {
 						</p>
 						<Link
 							href={user ? "/explore" : "/signup"}
-							className="inline-flex items-center space-x-2 px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-2xl shadow-purple-500/50 text-lg font-semibold group"
+							className="inline-flex items-center space-x-2 px-10 py-5 bg-linear-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-2xl shadow-purple-500/50 text-lg font-semibold group"
 						>
 							<span>Get Started Free</span>
 							<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

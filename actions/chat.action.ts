@@ -368,7 +368,7 @@ export async function sendMessage(chatId: string, content: string, firebaseUid: 
     });
 
     revalidatePath("/conversations");
-    return { success: true, message: { ...message, status: "DELIVERED", deliveredAt: new Date() } };
+    return { success: true, message: { ...message, status: "DELIVERED", deliveredAt: new Date() }, receiverId };
   } catch (error) {
     console.error("Failed to send message:", error);
     return { success: false, error: "Failed to send message" };

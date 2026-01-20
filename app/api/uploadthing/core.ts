@@ -3,7 +3,25 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 const f = createUploadthing();
 
 export const ourFileRouter = {
-  // define routes for different upload types
+  // Profile image upload - images only
+  profileImage: f({
+    image: {
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      return { userId: "test-user" };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return {
+        fileUrl: file.ufsUrl,
+        fileName: file.name,
+        fileType: file.type,
+      };
+    }),
+
+  // Post media upload - images, PDFs, and code files
   postMedia: f({
     image: {
       maxFileSize: "4MB",

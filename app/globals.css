@@ -132,6 +132,13 @@ body::-webkit-scrollbar-thumb {
 	pointer-events: auto;
 }
 
+.custom-upload-dropzone {
+	background-color: rgba(31, 41, 55, 0.5);
+	border: 1px dashed rgba(139, 92, 246, 0.3);
+	border-radius: 0.5rem;
+	padding: 1rem;
+}
+
 .custom-upload-dropzone button {
 	background-color: #6600ffec;
 	color: white;

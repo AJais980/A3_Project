@@ -1,14 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 const prismaClientSingleton = () => {
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL
+  });
   return new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
-    // Disable prepared statements for serverless environments (Vercel)
-    // This fixes the "prepared statement already exists" error
+    adapter,
     ...(process.env.NODE_ENV === "production" && {
       log: ["error"],
     }),

@@ -64,7 +64,7 @@ export default function BadgeDisplay({
 			initial={{ scale: 0 }}
 			animate={{ scale: 1 }}
 			transition={{ type: "spring", stiffness: 300, damping: 20 }}
-			className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${badgeColors[badge.type as keyof typeof badgeColors]
+			className={`inline-flex items-center gap-2 rounded-full bg-linear-to-r ${badgeColors[badge.type as keyof typeof badgeColors]
 				} ${containerSizeClasses[size]} ${className}`}
 			title={`${badge.name}: ${badge.description}`}
 		>

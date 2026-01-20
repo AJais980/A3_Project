@@ -178,7 +178,7 @@ export default function Home() {
 			{user && (
 				<motion.button
 					onClick={() => setIsCreateModalOpen(true)}
-					className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl shadow-purple-500/50 flex items-center justify-center text-white hover:scale-110 transition-transform z-50 group"
+					className="fixed bottom-8 right-8 w-14 h-14 bg-linear-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl shadow-purple-500/50 flex items-center justify-center text-white hover:scale-110 transition-transform z-50 group"
 					whileHover={{ scale: 1.1 }}
 					whileTap={{ scale: 0.95 }}
 					initial={{ scale: 0, opacity: 0 }}

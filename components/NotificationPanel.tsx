@@ -156,7 +156,7 @@ export default function NotificationPanel() {
 							opacity: 1,
 						}}
 						exit={{ scale: 0, opacity: 0 }}
-						className="absolute -top-1 -right-1 bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg ring-2 ring-black/40"
+						className="absolute -top-1 -right-1 bg-linear-to-br from-red-500 via-red-600 to-red-700 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg ring-2 ring-black/40"
 					>
 						<motion.span
 							animate={{ scale: [1, 1.1, 1] }}
@@ -195,14 +195,14 @@ export default function NotificationPanel() {
 							}}
 						>
 							{/* Header */}
-							<div className="flex items-center justify-between p-5 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+							<div className="flex items-center justify-between p-5 border-b border-white/10 bg-linear-to-r from-white/5 to-transparent">
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+									<div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
 										<Bell className="w-4 h-4 text-white" />
 									</div>
 									<h3 className="text-lg font-semibold text-white">Notifications</h3>
 									{unreadCount > 0 && (
-										<span className="px-2.5 py-1 text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full shadow-md">
+										<span className="px-2.5 py-1 text-xs font-medium bg-linear-to-r from-blue-500 to-purple-500 text-white rounded-full shadow-md">
 											{unreadCount}
 										</span>
 									)}
@@ -270,9 +270,9 @@ export default function NotificationPanel() {
 																className="rounded-full object-cover ring-2 ring-white/20"
 															/>
 															{/* Notification Type Badge */}
-															<div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs shadow-lg ${notification.type === 'LIKE' ? 'bg-gradient-to-br from-red-500 to-pink-500' :
-																notification.type === 'COMMENT' ? 'bg-gradient-to-br from-blue-500 to-cyan-500' :
-																	'bg-gradient-to-br from-green-500 to-emerald-500'
+															<div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs shadow-lg ${notification.type === 'LIKE' ? 'bg-linear-to-br from-red-500 to-pink-500' :
+																notification.type === 'COMMENT' ? 'bg-linear-to-br from-blue-500 to-cyan-500' :
+																	'bg-linear-to-br from-green-500 to-emerald-500'
 																}`}>
 																{notification.type === 'LIKE' ? '❤️' :
 																	notification.type === 'COMMENT' ? '💬' : '👥'}
@@ -293,7 +293,7 @@ export default function NotificationPanel() {
 																	</span>
 																</p>
 																{!notification.read && (
-																	<div className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex-shrink-0 shadow-lg"></div>
+																	<div className="w-2 h-2 bg-linear-to-r from-blue-400 to-purple-400 rounded-full flex-shrink-0 shadow-lg"></div>
 																)}
 															</div>
 

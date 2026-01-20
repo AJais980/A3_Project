@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { useChat } from "@/lib/useChat";
 import { useRealtime } from "@/lib/SupabaseRealtimeContext";
-import { getChatsForUser, deleteChat } from "@/actions/chat.action";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
@@ -18,7 +17,6 @@ import { motion } from "framer-motion";
 import { IconArrowLeft, IconSend, IconUser, IconMessageCircle, IconPhone, IconVideo, IconDotsVertical, IconCheck, IconChecks, IconMoodSmile } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import { getDbUserId } from "@/actions/user.action";
-import { ChatContextMenu } from "@/components/chat/ChatContextMenu";
 import { MessageContextMenu } from "@/components/chat/MessageContextMenu";
 import { MessageStatus } from "@/components/chat/MessageStatus";
 import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
@@ -27,8 +25,6 @@ import { ReplyPreview } from "@/components/chat/ReplyPreview";
 import { ReactionPicker } from "@/components/chat/ReactionPicker";
 import { MessageReactions } from "@/components/chat/MessageReactions";
 import { OnlineStatus } from "@/components/chat/OnlineStatus";
-import { UnreadBadge } from "@/components/chat/UnreadBadge";
-import { SearchBar } from "@/components/chat/SearchBar";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 
 type Reaction = {
@@ -99,14 +95,13 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
 
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { supabase, startTyping, stopTyping, requestUserStatus, userStatuses: globalUserStatuses, socket } = useRealtime();
+  const { startTyping, stopTyping, requestUserStatus, userStatuses: globalUserStatuses } = useRealtime();
 
   // Hook for chat data
   const { chat, isLoading, isSending, sendMessage, deleteMessage, markAsRead, addReaction, removeReaction, typingUsers } = useChat(chatId);
 
-  // State for the message input and sidebar
+  // State for the message input
   const [messageInput, setMessageInput] = React.useState("");
-  const [allChats, setAllChats] = React.useState<Chat[]>([]);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const messagesContainerRef = React.useRef<HTMLDivElement>(null);
   const [dbUserId, setDbUserId] = React.useState<string | null>(null);
@@ -115,7 +110,6 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
   const [showScrollButton, setShowScrollButton] = React.useState(false);
   const [replyTo, setReplyTo] = React.useState<Message | null>(null);
   const [showReactionPicker, setShowReactionPicker] = React.useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = React.useState("");
   const [hasScrolledToBottom, setHasScrolledToBottom] = React.useState(false);
   const [isInChatView, setIsInChatView] = React.useState(true);
 
@@ -126,29 +120,16 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     }
   }, [authLoading, user, router]);
 
-  // Fetch current user's database ID and all chats
-  const fetchAllChats = React.useCallback(async () => {
-    if (user) {
-      const result = await getChatsForUser(user.uid);
-      if (result.success && result.chats) {
-        const sortedChats = result.chats.sort((a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
-        setAllChats(sortedChats);
-      }
-    }
-  }, [user]);
-
+  // Fetch dbUserId
   useEffect(() => {
-    const fetchData = async () => {
-      if (user) {
+    const fetchDbId = async () => {
+      if (user && !dbUserId) {
         const id = await getDbUserId(user.uid);
         setDbUserId(id);
-        await fetchAllChats();
       }
     };
-    fetchData();
-  }, [user, fetchAllChats]);
+    fetchDbId();
+  }, [user, dbUserId]);
 
   // Request user status when chat loads
   useEffect(() => {
@@ -249,42 +230,6 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     };
   }, []);
 
-  // Listen for unread count updates via Socket.IO
-  useEffect(() => {
-    if (socket && dbUserId) {
-      const handleUnreadCountUpdated = () => {
-        // Refresh chat list when unread count changes
-        fetchAllChats();
-      };
-
-      socket.on('unread_count_updated', handleUnreadCountUpdated);
-
-      return () => {
-        socket.off('unread_count_updated', handleUnreadCountUpdated);
-      };
-    }
-  }, [socket, dbUserId, fetchAllChats]);
-
-  // Listen for unread count updates and refresh chat list
-  useEffect(() => {
-    if (supabase && dbUserId) {
-      const channel = supabase.channel(`user:${dbUserId}`);
-
-      channel
-        .on('broadcast', { event: 'unread_count_updated' }, ({ payload }: any) => {
-          fetchAllChats();
-        })
-        .on('broadcast', { event: 'new_message' }, ({ payload }: any) => {
-          fetchAllChats();
-        })
-        .subscribe();
-
-      return () => {
-        channel.unsubscribe();
-      };
-    }
-  }, [supabase, dbUserId, fetchAllChats]);
-
   // Handle scroll to show/hide scroll button
   const handleScroll = (e: any) => {
     if (messagesContainerRef.current) {
@@ -360,26 +305,6 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     }
   };
 
-
-  const handleDeleteChat = async (chatId: string) => {
-    if (!user) return;
-
-    try {
-      const result = await deleteChat(chatId, user.uid);
-      if (result.success) {
-        setAllChats(allChats.filter(chat => chat.id !== chatId));
-        toast.success("Chat deleted successfully");
-        if (chatId === chat?.id) {
-          router.push("/conversations");
-        }
-      } else {
-        toast.error(result.error || "Failed to delete chat");
-      }
-    } catch (error) {
-      toast.error("Failed to delete chat");
-    }
-  };
-
   const handleReply = (message: Message) => {
     setReplyTo(message);
   };
@@ -413,10 +338,6 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
   const getOtherUser = (currentChat: Chat) => {
     if (!dbUserId) return null;
     return currentChat.user1.id === dbUserId ? currentChat.user2 : currentChat.user1;
-  };
-
-  const getLastMessage = (chatItem: Chat) => {
-    return chatItem.messages.length > 0 ? chatItem.messages[0] : null;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -469,27 +390,12 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     }
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const handleEmojiSelect = (emoji: string) => {
     setMessageInput(prev => prev + emoji);
   };
 
-  // Filter chats based on search query
-  const filteredChats = allChats.filter(chatItem => {
-    const otherUserInList = getOtherUser(chatItem);
-    if (!otherUserInList) return false;
-
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      otherUserInList.name?.toLowerCase().includes(searchLower) ||
-      otherUserInList.username.toLowerCase().includes(searchLower)
-    );
-  });
-
-  if (authLoading || isLoading) {
+  // Only show full-page loading on initial authentication
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -497,10 +403,10 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             {/* Outer spinning ring */}
             <div className="w-16 h-16 border-4 border-gray-800 border-t-purple-600 rounded-full animate-spin"></div>
             {/* Inner pulsing circle */}
-            <div className="absolute inset-0 m-auto w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 m-auto w-8 h-8 bg-linear-to-br from-purple-600 to-pink-600 rounded-full animate-pulse"></div>
           </div>
           <div className="text-center">
-            <p className="text-white text-lg font-medium">Loading chat...</p>
+            <p className="text-white text-lg font-medium">Loading...</p>
             <p className="text-gray-400 text-sm mt-1">Please wait</p>
           </div>
         </div>
@@ -508,31 +414,72 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     );
   }
 
-  if (!user || !dbUserId) {
-    // Silent redirect, no message shown
-    if (!authLoading && !user) {
-      return null; // Return null instead of showing redirect message
-    }
-    // Still loading dbUserId
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-gray-800 border-t-purple-600 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 m-auto w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full animate-pulse"></div>
-          </div>
-          <div className="text-center">
-            <p className="text-white text-lg font-medium">Loading...</p>
-            <p className="text-gray-400 text-sm mt-1">Setting up your chat</p>
+  if (!user) {
+    // Silent redirect
+    return null;
+  }
+
+  // Loading component for chat content area
+  const ChatLoadingState = () => (
+    <div className="flex-1 flex flex-col min-w-0 w-full h-screen">
+      {/* Placeholder Header */}
+      <div className="border-b border-gray-800 bg-gray-900 px-4 md:px-6 py-4 shrink-0 shadow-lg">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/conversations")}
+            className="text-gray-400 hover:text-white lg:hidden shrink-0 p-2 hover:bg-gray-800"
+          >
+            <IconArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="w-11 h-11 bg-gray-800 rounded-full animate-pulse" />
+          <div className="flex-1">
+            <div className="h-5 w-32 bg-gray-800 rounded animate-pulse mb-2" />
+            <div className="h-3 w-20 bg-gray-800 rounded animate-pulse" />
           </div>
         </div>
       </div>
-    );
-  }
 
-  if (!chat) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      {/* Loading Content */}
+      <div className="flex-1 bg-gray-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-gray-800 border-t-purple-600 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 m-auto w-8 h-8 bg-linear-to-br from-purple-600 to-pink-600 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center">
+            <p className="text-white text-lg font-medium">Loading chat...</p>
+            <p className="text-gray-400 text-sm mt-1">Please wait</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Chat not found component
+  const ChatNotFoundState = () => (
+    <div className="flex-1 flex flex-col min-w-0 w-full h-screen">
+      <div className="border-b border-gray-800 bg-gray-900 px-4 md:px-6 py-4 shrink-0 shadow-lg">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/conversations")}
+            className="text-gray-400 hover:text-white lg:hidden shrink-0 p-2 hover:bg-gray-800"
+          >
+            <IconArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="w-11 h-11 bg-gray-800 rounded-full flex items-center justify-center">
+            <IconMessageCircle className="w-6 h-6 text-gray-600" />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-white">Chat</h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
             <IconMessageCircle className="w-8 h-8 text-gray-600" />
@@ -541,20 +488,38 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
           <p className="text-gray-400 mb-6">This conversation doesn't exist or has been deleted.</p>
           <Button
             onClick={() => router.push("/conversations")}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             Back to Conversations
           </Button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  const otherUser = getOtherUser(chat);
+  // User not found component
+  const UserNotFoundState = () => (
+    <div className="flex-1 flex flex-col min-w-0 w-full h-screen">
+      <div className="border-b border-gray-800 bg-gray-900 px-4 md:px-6 py-4 shrink-0 shadow-lg">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/conversations")}
+            className="text-gray-400 hover:text-white lg:hidden shrink-0 p-2 hover:bg-gray-800"
+          >
+            <IconArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="w-11 h-11 bg-gray-800 rounded-full flex items-center justify-center">
+            <IconUser className="w-6 h-6 text-gray-600" />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-white">User</h1>
+          </div>
+        </div>
+      </div>
 
-  if (!otherUser) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="flex-1 bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
             <IconUser className="w-8 h-8 text-gray-600" />
@@ -563,120 +528,53 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
           <p className="text-gray-400 mb-6">Unable to load the other user in this chat.</p>
           <Button
             onClick={() => router.push("/conversations")}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             Back to Conversations
           </Button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  return (
-    <div className="h-screen bg-gray-950 flex overflow-hidden">
-      {/* Sidebar - Conversations List */}
-      <div className="hidden lg:flex lg:w-80 border-r border-gray-800 bg-gray-900 flex-col flex-shrink-0">
-        {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-800 bg-gray-900/50">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-white">Messages</h1>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/conversations")}
-              className="text-gray-400 hover:text-white hover:bg-gray-800"
-            >
-              <IconArrowLeft className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
+  const otherUser = chat ? getOtherUser(chat) : null;
 
-        {/* Search Bar */}
-        <div className="p-3 border-b border-gray-800">
-          <SearchBar
-            onSearch={handleSearch}
-            placeholder="Search conversations..."
-          />
-        </div>
+  // Determine what to render in the main chat area
+  const renderChatContent = () => {
+    if (isLoading || !dbUserId) {
+      return <ChatLoadingState />;
+    }
 
-        {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto chat-scrollbar">
-          {filteredChats.map((chatItem) => {
-            const otherUserInList = getOtherUser(chatItem);
-            const lastMessage = getLastMessage(chatItem);
-            const isActive = chatItem.id === chatId;
+    if (!chat) {
+      return <ChatNotFoundState />;
+    }
 
-            if (!otherUserInList) return null;
+    if (!otherUser) {
+      return <UserNotFoundState />;
+    }
 
-            return (
-              <ChatContextMenu
-                key={chatItem.id}
-                onDelete={() => handleDeleteChat(chatItem.id)}
-              >
-                <div
-                  className={`border-b border-gray-800 cursor-pointer transition-all ${isActive ? "bg-gray-800/50 border-l-4 border-l-purple-500" : "hover:bg-gray-800/30"
-                    }`}
-                  onClick={() => router.push(`/conversations/${chatItem.id}`)}
-                >
-                  <div className="p-4 flex items-center space-x-3">
-                    <Avatar className="w-12 h-12 flex-shrink-0 ring-2 ring-gray-700">
-                      <AvatarImage
-                        src={otherUserInList.image || "/avatar.png"}
-                        alt={otherUserInList.name || otherUserInList.username}
-                      />
-                    </Avatar>
+    return renderMainChatArea();
+  };
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-white truncate text-sm">
-                          {otherUserInList.name || otherUserInList.username}
-                        </h3>
-                        <span className="text-xs text-gray-500 flex-shrink-0">
-                          {chatItem.updatedAt ? formatDistanceToNow(new Date(chatItem.updatedAt), { addSuffix: false }) : 'now'}
-                        </span>
-                      </div>
+  // Extract main chat area rendering into a function
+  const renderMainChatArea = () => {
+    if (!chat || !otherUser || !dbUserId) return null;
 
-                      {lastMessage ? (
-                        <p className="text-sm text-gray-400 truncate">
-                          {lastMessage.sender.id === dbUserId ? (
-                            <span className="text-gray-500">You: </span>
-                          ) : null}
-                          {lastMessage.content}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-gray-500 italic">
-                          No messages yet
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Unread badge - only show if not the active chat */}
-                    {!isActive && chatItem.user1Id && chatItem.user2Id && (
-                      <UnreadBadge count={chatItem.user1Id === dbUserId ? (chatItem.user1UnreadCount || 0) : (chatItem.user2UnreadCount || 0)} />
-                    )}
-                  </div>
-                </div>
-              </ChatContextMenu>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0 w-full">
+    return (
+      <div className="flex-1 flex flex-col min-w-0 w-full h-screen">
         {/* Chat Header */}
-        <div className="border-b border-gray-800 bg-gray-900 px-4 md:px-6 py-4 flex-shrink-0 shadow-lg">
+        <div className="border-b border-gray-800 bg-gray-900 px-4 md:px-6 py-4 shrink-0 shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 min-w-0 flex-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push("/conversations")}
-                className="text-gray-400 hover:text-white lg:hidden flex-shrink-0 p-2 hover:bg-gray-800"
+                className="text-gray-400 hover:text-white lg:hidden shrink-0 p-2 hover:bg-gray-800"
               >
                 <IconArrowLeft className="w-5 h-5" />
               </Button>
-              <Avatar className="w-11 h-11 flex-shrink-0 ring-2 ring-purple-500/30">
+              <Avatar className="w-11 h-11 shrink-0 ring-2 ring-purple-500/30">
                 <AvatarImage
                   src={otherUser?.image || "/avatar.png"}
                   alt={otherUser?.name || otherUser?.username || "User"}
@@ -715,11 +613,11 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                   className="flex flex-col items-center justify-center h-full py-20 text-center"
                 >
                   <motion.div
-                    className="w-32 h-32 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-full flex items-center justify-center mb-6 relative"
+                    className="w-32 h-32 bg-linear-to-br from-purple-600/20 to-pink-600/20 rounded-full flex items-center justify-center mb-6 relative"
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-full blur-xl" />
+                    <div className="absolute inset-0 bg-linear-to-br from-purple-600/10 to-pink-600/10 rounded-full blur-xl" />
                     <IconMessageCircle className="w-16 h-16 text-purple-500 relative z-10" />
                   </motion.div>
                   <h3 className="text-2xl font-bold text-white mb-2">
@@ -754,7 +652,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                         <div className={`flex items-end gap-2 max-w-[75%] ${isOwnMessage ? "flex-row-reverse" : ""}`}>
                           {/* Avatar - only show for other user's messages */}
                           {!isOwnMessage && showAvatar && (
-                            <Avatar className="w-8 h-8 flex-shrink-0 ring-2 ring-gray-800">
+                            <Avatar className="w-8 h-8 shrink-0 ring-2 ring-gray-800">
                               <AvatarImage
                                 src={msg.sender.image || "/avatar.png"}
                                 alt={msg.sender.name || msg.sender.username}
@@ -762,7 +660,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                             </Avatar>
                           )}
                           {!isOwnMessage && !showAvatar && (
-                            <div className="w-8 h-8 flex-shrink-0" />
+                            <div className="w-8 h-8 shrink-0" />
                           )}
 
                           <div className={`flex flex-col ${isOwnMessage ? "items-end" : "items-start"}`}>
@@ -776,7 +674,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                             >
                               <div
                                 className={`px-4 py-2.5 rounded-2xl relative inline-block shadow-sm transition-all group-hover:shadow-md ${isOwnMessage
-                                  ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white"
+                                  ? "bg-linear-to-br from-purple-600 to-purple-700 text-white"
                                   : "bg-gray-800 text-white border border-gray-700"
                                   }`}
                                 style={{
@@ -801,14 +699,14 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
 
                                 {/* Message content */}
                                 <div className="flex items-end gap-2">
-                                  <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words flex-1">
+                                  <p className="text-[15px] leading-relaxed whitespace-pre-wrap wrap-break-word flex-1">
                                     {msg.isDeleted ? (
                                       <span className="italic opacity-70">This message was deleted</span>
                                     ) : (
                                       msg.content
                                     )}
                                   </p>
-                                  <span className={`inline-flex items-center gap-1 flex-shrink-0 ml-2 ${isOwnMessage ? 'opacity-90' : 'opacity-60'
+                                  <span className={`inline-flex items-center gap-1 shrink-0 ml-2 ${isOwnMessage ? 'opacity-90' : 'opacity-60'
                                     }`}>
                                     <span className="text-[11px] font-medium">
                                       {formatMessageTime(new Date(msg.createdAt))}
@@ -885,10 +783,10 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
         )}
 
         {/* Message Input */}
-        <div className="border-t border-gray-800 bg-gray-900 p-4 flex-shrink-0">
+        <div className="border-t border-gray-800 bg-gray-900 p-4 shrink-0">
           <div className="flex items-center space-x-3 max-w-4xl mx-auto ">
             {/* Emoji Picker */}
-            <div className="flex-shrink-0 hidden md:block">
+            <div className="shrink-0 hidden md:block">
               <EmojiPicker onSelectEmoji={handleEmojiSelect} />
             </div>
 
@@ -899,7 +797,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
-                className="min-h-[44px] max-h-32 resize-none border-0 bg-gray-800 text-white placeholder-gray-400 rounded-2xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-gray-800"
+                className="min-h-11 max-h-32 resize-none border-0 bg-gray-800 text-white placeholder-gray-400 rounded-2xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-gray-800"
                 disabled={isSending}
               />
             </div>
@@ -908,7 +806,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             <Button
               onClick={handleSendMessage}
               disabled={!messageInput.trim() || isSending}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full w-12 h-12 p-0 flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full w-12 h-12 p-0 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSending ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -919,6 +817,8 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  return renderChatContent();
 }

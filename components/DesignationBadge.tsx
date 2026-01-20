@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BadgeList } from './BadgeDisplay';
-import { GraduationCap, BookOpen, Briefcase } from 'lucide-react';
+import { GraduationCap, BookOpen, Briefcase, Lock } from 'lucide-react';
 
-type DesignationType = 'STUDENT' | 'TEACHER' | 'WORKING_PROFESSIONAL';
+type DesignationType = 'STUDENT' | 'TEACHER' | 'WORKING_PROFESSIONAL' | 'UNVERIFIED';
 
 interface DesignationBadgeProps {
-	designation: DesignationType;
+	designation: DesignationType | null | undefined;
 	size?: 'sm' | 'md' | 'lg';
 	className?: string;
 	userBadges?: Array<{ badgeType: string; earnedAt: Date }>;
@@ -34,6 +34,11 @@ const designationConfig: Record<DesignationType, DesignationConfig> = {
 		label: 'Professional',
 		gradientClasses: 'from-amber-400 via-orange-500 to-red-500',
 		icon: Briefcase
+	},
+	UNVERIFIED: {
+		label: 'Unverified',
+		gradientClasses: 'from-gray-400 via-gray-500 to-gray-600',
+		icon: Lock
 	}
 };
 
@@ -56,7 +61,9 @@ export default function DesignationBadge({
 	userBadges = [],
 	showBadges = true
 }: DesignationBadgeProps) {
-	const config = designationConfig[designation];
+	// If no designation, show unverified
+	const displayDesignation = designation || 'UNVERIFIED';
+	const config = designationConfig[displayDesignation];
 
 	if (!config) return null;
 
@@ -70,7 +77,7 @@ export default function DesignationBadge({
 				transition={{ type: "spring", stiffness: 300, damping: 20 }}
 				className={`
 					inline-flex items-center gap-2 rounded-full font-medium
-					bg-gradient-to-r ${config.gradientClasses}
+					bg-linear-to-r ${config.gradientClasses}
 					text-white shadow-md hover:shadow-lg transition-shadow
 					${containerSizeClasses[size]}
 				`}
@@ -123,7 +130,7 @@ export function DesignationBadges({
 					transition={{ type: "spring", stiffness: 300, damping: 20 }}
 					className={`
 						inline-flex items-center rounded-full font-medium
-						bg-gradient-to-r from-gray-400 to-gray-600
+						bg-linear-to-r from-gray-400 to-gray-600
 						text-white shadow-md
 						${containerSizeClasses[size]}
 					`}

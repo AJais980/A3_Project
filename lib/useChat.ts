@@ -168,9 +168,12 @@ export function useChat(chatId: string) {
           };
         });
 
+        // Get the recipient ID from server response or calculate it
+        const recipientId = (result as any).receiverId || (chat?.user1.id === dbUserId ? chat?.user2.id : chat?.user1.id);
+
         // Emit the message via WebSocket to other users
         if (isConnected) {
-          emitMessage(chatId, newMessage);
+          emitMessage(chatId, newMessage, recipientId);
         }
 
         return { success: true, message: newMessage };

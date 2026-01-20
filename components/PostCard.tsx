@@ -262,9 +262,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                   {post.author.name || post.author.username}
                 </Link>
               </UserHoverCard>
-              {post.author.designation && (
-                <DesignationBadge designation={post.author.designation as 'STUDENT' | 'TEACHER' | 'WORKING_PROFESSIONAL'} size="sm" className="ml-2" />
-              )}
+              <DesignationBadge designation={post.author.designation as 'STUDENT' | 'TEACHER' | 'WORKING_PROFESSIONAL' | null} size="sm" className="ml-2" />
             </div>
             <p className="text-sm text-gray-400">
               @{post.author.username} · {formatDistanceToNow(new Date(post.createdAt))} ago

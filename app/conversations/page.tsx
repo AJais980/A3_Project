@@ -115,10 +115,10 @@ export default function ConversationsPage() {
     initializeChats();
   }, [user, authLoading, loadChats]);
 
-  // Listen for real-time updates to refresh chat list
+  // Listen for real-time updates to refresh chat list via Supabase
   useEffect(() => {
     if (supabase && user && dbUserId) {
-      const channel = supabase.channel(`user:${dbUserId}`);
+      const channel = supabase.channel(`conversations-updates:${dbUserId}`);
 
       channel
         .on('broadcast', { event: 'new_message' }, ({ payload }: any) => {
@@ -138,17 +138,24 @@ export default function ConversationsPage() {
     }
   }, [supabase, user, dbUserId, loadChats]);
 
-  // Listen for Socket.IO unread count updates
+  // Listen for Socket.IO updates for new messages and unread counts
   useEffect(() => {
     if (socket && dbUserId) {
       const handleUnreadCountUpdated = () => {
         loadChats();
       };
 
+      const handleMessageReceived = () => {
+        // Refresh chat list when a new message is received
+        loadChats();
+      };
+
       socket.on('unread_count_updated', handleUnreadCountUpdated);
+      socket.on('message_received', handleMessageReceived);
 
       return () => {
         socket.off('unread_count_updated', handleUnreadCountUpdated);
+        socket.off('message_received', handleMessageReceived);
       };
     }
   }, [socket, dbUserId, loadChats]);
@@ -221,7 +228,7 @@ export default function ConversationsPage() {
               {/* Outer spinning ring */}
               <div className="w-16 h-16 border-4 border-gray-800 border-t-purple-600 rounded-full animate-spin"></div>
               {/* Inner pulsing circle */}
-              <div className="absolute inset-0 m-auto w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 m-auto w-8 h-8 bg-linear-to-br from-purple-600 to-pink-600 rounded-full animate-pulse"></div>
             </div>
             <div className="text-center">
               <p className="text-white text-lg font-medium">Loading conversations...</p>
@@ -247,7 +254,7 @@ export default function ConversationsPage() {
             {/* Sidebar - Conversations List */}
             <div className="w-full lg:w-96 flex flex-col bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
               {/* Header */}
-              <div className="p-6 border-b border-gray-800 bg-gradient-to-r from-purple-900/20 to-pink-900/20">
+              <div className="p-6 border-b border-gray-800 bg-linear-to-r from-purple-900/20 to-pink-900/20">
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -277,7 +284,7 @@ export default function ConversationsPage() {
                     transition={{ duration: 0.5, delay: 0.2 }}
                     className="flex flex-col items-center justify-center h-full p-8 text-center"
                   >
-                    <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center mb-4">
+                    <div className="w-20 h-20 bg-linear-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center mb-4">
                       <IconMessageCircle className="w-10 h-10 text-purple-500" />
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-2">
@@ -291,7 +298,7 @@ export default function ConversationsPage() {
                     {!searchQuery && (
                       <button
                         onClick={() => router.push("/explore")}
-                        className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-medium transition-all shadow-lg shadow-purple-500/25"
+                        className="px-6 py-2.5 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-medium transition-all shadow-lg shadow-purple-500/25"
                       >
                         Explore Users
                       </button>
@@ -339,7 +346,7 @@ export default function ConversationsPage() {
                                   <h3 className="font-semibold text-white truncate text-base group-hover:text-purple-400 transition-colors">
                                     {otherUser.name || otherUser.username}
                                   </h3>
-                                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                                  <span className="text-xs text-gray-500 shrink-0 ml-2">
                                     {formatDistanceToNow(new Date(chat.updatedAt), { addSuffix: false })}
                                   </span>
                                 </div>
@@ -376,7 +383,7 @@ export default function ConversationsPage() {
             {/* Main Content Area - Welcome Message */}
             <div className="flex-1 bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl hidden lg:flex items-center justify-center overflow-hidden relative">
               {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-transparent to-pink-900/10" />
+              <div className="absolute inset-0 bg-linear-to-br from-purple-900/10 via-transparent to-pink-900/10" />
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
 
               <motion.div
@@ -386,7 +393,7 @@ export default function ConversationsPage() {
                 className="text-center max-w-md px-4 relative z-10"
               >
                 <motion.div
-                  className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/25"
+                  className="w-32 h-32 mx-auto mb-6 bg-linear-to-br from-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/25"
                   animate={{
                     scale: [1, 1.05, 1],
                   }}
@@ -399,7 +406,7 @@ export default function ConversationsPage() {
                   <IconMessageCircle className="w-16 h-16 text-white" />
                 </motion.div>
                 <h2 className="text-3xl font-bold text-white mb-3">
-                  Welcome to <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">PeerPulse</span> Chat
+                  Welcome to <span className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">PeerPulse</span> Chat
                 </h2>
                 <p className="text-base text-gray-400 leading-relaxed mb-6">
                   Select a conversation from the sidebar to start chatting with your professional network.

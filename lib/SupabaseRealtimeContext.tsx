@@ -15,7 +15,7 @@ interface RealtimeContextType {
   socket: typeof Socket | null;
   joinChat: (chatId: string, userId: string) => void;
   leaveChat: (chatId: string) => void;
-  sendMessage: (chatId: string, message: any) => void;
+  sendMessage: (chatId: string, message: any, recipientId?: string) => void;
   deleteMessage: (chatId: string, messageId: string, deleteForEveryone: boolean) => void;
   startTyping: (chatId: string, userId: string, username: string) => void;
   stopTyping: (chatId: string, userId: string, username?: string) => void;
@@ -163,7 +163,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     }
   }, [user, dbUserId]);
 
-  // Setup user-specific channel for notifications
+  // Setup user-specific channel for notifications (using Firebase UID)
   useEffect(() => {
     if (supabase && user && isConnected) {
       const channel = supabase.channel(`user:${user.uid}`);
@@ -178,6 +178,22 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
       };
     }
   }, [supabase, user, isConnected]);
+
+  // Setup sidebar updates channel using database user ID
+  useEffect(() => {
+    if (supabase && dbUserId && isConnected) {
+      const channel = supabase.channel(`sidebar-updates:${dbUserId}`);
+
+      // Just subscribe to keep the channel alive for broadcasts
+      channel.subscribe((status: string) => {
+        console.log(`Sidebar updates channel (${dbUserId}) status:`, status);
+      });
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [supabase, dbUserId, isConnected]);
 
   // Setup Supabase Presence for online status (fallback for Vercel/serverless)
   useEffect(() => {
@@ -272,7 +288,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     }
   }, [channels, socket]);
 
-  const sendMessage = useCallback((chatId: string, message: any) => {
+  const sendMessage = useCallback((chatId: string, message: any, recipientId?: string) => {
     const channel = channels.get(chatId);
     if (channel) {
       channel.send({
@@ -281,7 +297,15 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
         payload: { message },
       });
     }
-  }, [channels]);
+
+    // Also emit via Socket.IO with recipientId for sidebar updates
+    if (socket && socket.connected) {
+      console.log('Emitting new_message via Socket.IO, recipientId:', recipientId);
+      socket.emit('new_message', { chatId, message, recipientId });
+    } else {
+      console.log('Socket not connected, cannot emit new_message');
+    }
+  }, [channels, socket]);
 
   const deleteMessage = useCallback((chatId: string, messageId: string, deleteForEveryone: boolean) => {
     const channel = channels.get(chatId);

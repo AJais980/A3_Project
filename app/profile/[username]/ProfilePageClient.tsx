@@ -1,7 +1,7 @@
 "use client";
 
 import { getProfileByUsername, getUserPosts, updateProfile } from "@/actions/profile.action";
-import { toggleFollow } from "@/actions/user.action";
+import { toggleFollow, deleteUserAccount } from "@/actions/user.action";
 import { getUserStats } from "@/actions/badge.action";
 import { createOrGetChat } from "@/actions/chat.action";
 import { getDbUserId } from "@/actions/user.action";
@@ -31,7 +31,11 @@ import {
   LinkIcon,
   MapPinIcon,
   MessageCircleIcon,
+  Trash2,
+  Camera,
+  XIcon,
 } from "lucide-react";
+import { UploadDropzone } from "@/lib/uploadthing";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -55,6 +59,8 @@ function ProfilePageClient({
   const { user: currentUser, loading } = useAuth();
   const router = useRouter();
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -65,8 +71,24 @@ function ProfilePageClient({
     bio: user.bio || "",
     location: user.location || "",
     website: user.website || "",
-    designation: user.designation || "",
+    image: user.image || "",
   });
+
+  // Update edit form image when dialog opens and currentUser is available
+  useEffect(() => {
+    if (showEditDialog && !editForm.image && currentUser?.photoURL) {
+      setEditForm(prev => ({ ...prev, image: currentUser.photoURL || "" }));
+    }
+  }, [showEditDialog, currentUser]);
+
+  // Preload Firebase profile picture when available
+  useEffect(() => {
+    if (currentUser?.photoURL) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = currentUser.photoURL;
+    }
+  }, [currentUser?.photoURL]);
 
   // Fetch current user's database ID
   useEffect(() => {
@@ -89,6 +111,33 @@ function ProfilePageClient({
     if (result.success) {
       setShowEditDialog(false);
       toast.success("Profile updated successfully");
+      // Dispatch event to notify Navigation to refresh user data
+      window.dispatchEvent(new Event("profileUpdated"));
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!currentUser) return;
+
+    try {
+      setIsDeleting(true);
+      const result = await deleteUserAccount(currentUser.uid);
+
+      if (result.success) {
+        toast.success("Account deleted successfully");
+        setShowDeleteDialog(false);
+        // Redirect to signin page after successful deletion
+        setTimeout(() => {
+          router.push("/signin");
+        }, 1000);
+      } else {
+        toast.error(result.error || "Failed to delete account");
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("An error occurred while deleting account");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -158,7 +207,7 @@ function ProfilePageClient({
     <div className="bg-gray-950 border border-gray-900 rounded-2xl space-y-6 mt-[17vh] mb-[5vh] mx-1 sm:mx-4 overflow-hidden max-w-[100vw]">
       <div className="max-w-[calc(100vw-1rem)] sm:max-w-4xl mx-auto p-4 sm:p-6 space-y-6 overflow-hidden">
         {/* Profile Card - Separate Box */}
-        <Card className="bg-gradient-to-br from-slate-900 via-purple-900/20 to-indigo-900/30 border border-purple-500/20 shadow-2xl backdrop-blur-sm">
+        <Card className="bg-linear-to-br from-slate-900 via-purple-900/20 to-indigo-900/30 border border-purple-500/20 shadow-2xl backdrop-blur-sm">
           <CardContent className="p-3 sm:p-6">
             <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-6">
               {/* Avatar and Basic Info */}
@@ -167,20 +216,18 @@ function ProfilePageClient({
                   <AvatarImage src={user.image ?? "/avatar.png"} />
                 </Avatar>
                 <div className="mt-4 w-full">
-                  <h1 className="text-xl sm:text-2xl font-bold text-white mb-2 break-words">
+                  <h1 className="text-xl sm:text-2xl font-bold text-white mb-2 wrap-break-word">
                     {user.name ?? user.username}
                   </h1>
                   <div className="flex items-center justify-center lg:justify-start mb-3 flex-wrap">
                     <p className="text-gray-400 break-all">@{user.username}</p>
-                    {user.designation && (
-                      <DesignationBadge
-                        designation={user.designation as 'STUDENT' | 'TEACHER' | 'WORKING_PROFESSIONAL'}
-                        size="md"
-                        className="ml-2 mt-1 sm:mt-0"
-                        userBadges={badgeStats.badges}
-                        showBadges={true}
-                      />
-                    )}
+                    <DesignationBadge
+                      designation={user.designation as 'STUDENT' | 'TEACHER' | 'WORKING_PROFESSIONAL' | null}
+                      size="md"
+                      className="ml-2 mt-1 sm:mt-0"
+                      userBadges={badgeStats.badges}
+                      showBadges={true}
+                    />
                   </div>
 
                   {/* Badge Stats Display */}
@@ -202,7 +249,7 @@ function ProfilePageClient({
                     </div>
                   )}
                   {user.bio && (
-                    <p className="text-gray-300 text-sm leading-relaxed max-w-full break-words">
+                    <p className="text-gray-300 text-sm leading-relaxed max-w-full wrap-break-word">
                       {user.bio}
                     </p>
                   )}
@@ -213,25 +260,25 @@ function ProfilePageClient({
               <div className="flex-1 mt-6 lg:mt-0">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                  <div className="text-center p-3 bg-gradient-to-br from-purple-900/40 to-purple-800/20 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+                  <div className="text-center p-3 bg-linear-to-br from-purple-900/40 to-purple-800/20 rounded-lg border border-purple-500/30 backdrop-blur-sm">
                     <div className="text-xl font-bold text-white mb-1">
                       {user._count.posts.toLocaleString()}
                     </div>
                     <div className="text-xs text-purple-200">Posts</div>
                   </div>
-                  <div className="text-center p-3 bg-gradient-to-br from-indigo-900/40 to-indigo-800/20 rounded-lg border border-indigo-500/30 backdrop-blur-sm">
+                  <div className="text-center p-3 bg-linear-to-br from-indigo-900/40 to-indigo-800/20 rounded-lg border border-indigo-500/30 backdrop-blur-sm">
                     <div className="text-xl font-bold text-white mb-1">
                       {user._count.followers.toLocaleString()}
                     </div>
                     <div className="text-xs text-indigo-200">Followers</div>
                   </div>
-                  <div className="text-center p-3 bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 rounded-lg border border-emerald-500/30 backdrop-blur-sm">
+                  <div className="text-center p-3 bg-linear-to-br from-emerald-900/40 to-emerald-800/20 rounded-lg border border-emerald-500/30 backdrop-blur-sm">
                     <div className="text-xl font-bold text-white mb-1">
                       {user._count.following.toLocaleString()}
                     </div>
                     <div className="text-xs text-emerald-200">Following</div>
                   </div>
-                  <div className="text-center p-3 bg-gradient-to-br from-amber-900/40 to-amber-800/20 rounded-lg border border-amber-500/30 backdrop-blur-sm">
+                  <div className="text-center p-3 bg-linear-to-br from-amber-900/40 to-amber-800/20 rounded-lg border border-amber-500/30 backdrop-blur-sm">
                     <div className="text-xl font-bold text-white mb-1">
                       {badgeStats.badgeCount}
                     </div>
@@ -241,13 +288,22 @@ function ProfilePageClient({
 
                 {/* Action Button */}
                 {isOwnProfile ? (
-                  <Button
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all mb-4 text-sm sm:text-base"
-                    onClick={() => setShowEditDialog(true)}
-                  >
-                    <EditIcon className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </Button>
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    <Button
+                      className="flex-1 sm:flex-initial sm:w-auto px-4 sm:px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all text-sm sm:text-base"
+                      onClick={() => setShowEditDialog(true)}
+                    >
+                      <EditIcon className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                    <Button
+                      className="flex-1 sm:flex-initial sm:w-auto px-4 sm:px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all text-sm sm:text-base"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </div>
                 ) : (
                   <div className="flex gap-2 mb-4">
                     <Button
@@ -284,13 +340,13 @@ function ProfilePageClient({
                 <div className="space-y-2">
                   {user.location && (
                     <div className="flex items-center text-gray-300 text-sm">
-                      <MapPinIcon className="w-4 h-4 mr-2 text-purple-400 flex-shrink-0" />
-                      <span className="break-words">{user.location}</span>
+                      <MapPinIcon className="w-4 h-4 mr-2 text-purple-400 shrink-0" />
+                      <span className="wrap-break-word">{user.location}</span>
                     </div>
                   )}
                   {user.website && (
                     <div className="flex items-center text-gray-300 text-sm">
-                      <LinkIcon className="w-4 h-4 mr-2 text-purple-400 flex-shrink-0" />
+                      <LinkIcon className="w-4 h-4 mr-2 text-purple-400 shrink-0" />
                       <a
                         href={user.website.startsWith("http") ? user.website : `https://${user.website}`}
                         className="hover:text-purple-400 transition-colors hover:underline break-all"
@@ -313,7 +369,7 @@ function ProfilePageClient({
 
         {/* Badge Progress Section - Only show for own profile */}
         {isOwnProfile && (
-          <Card className="bg-gradient-to-br from-gray-900/95 via-purple-900/10 to-indigo-900/20 border border-purple-500/20 shadow-2xl backdrop-blur-md ring-1 ring-purple-500/10">
+          <Card className="bg-linear-to-br from-gray-900/95 via-purple-900/10 to-indigo-900/20 border border-purple-500/20 shadow-2xl backdrop-blur-md ring-1 ring-purple-500/10">
             <CardContent className="p-3 sm:p-6">
               <BadgeProgress
                 userBadges={badgeStats.badges}
@@ -325,11 +381,11 @@ function ProfilePageClient({
         )}
 
         {/* Posts Section - Separate Box */}
-        <Card className="bg-gradient-to-br from-gray-900/95 via-slate-800/90 to-zinc-900/95 border border-gray-700/50 shadow-2xl backdrop-blur-md ring-1 ring-white/5">
+        <Card className="bg-linear-to-br from-gray-900/95 via-slate-800/90 to-zinc-900/95 border border-gray-700/50 shadow-2xl backdrop-blur-md ring-1 ring-white/5">
           <CardContent className="p-3 sm:p-6">
             {/* Posts Header */}
             <div className="flex items-center justify-center space-x-3 pb-4 border-b border-gradient-to-r from-gray-700/50 via-gray-600/30 to-gray-700/50 mb-6 relative">
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gray-500/50 to-transparent"></div>
+              <div className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-gray-500/50 to-transparent"></div>
               <FileTextIcon className="w-5 h-5 text-gray-300" />
               <h2 className="text-lg sm:text-xl font-bold text-white">Posts</h2>
               <span className="text-gray-400">({user._count.posts})</span>
@@ -347,7 +403,7 @@ function ProfilePageClient({
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 rounded-full flex items-center justify-center border border-emerald-500/30">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-linear-to-br from-emerald-900/40 to-emerald-800/20 rounded-full flex items-center justify-center border border-emerald-500/30">
                     <FileTextIcon className="w-8 h-8 text-emerald-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-400 mb-2">No posts yet</h3>
@@ -361,11 +417,62 @@ function ProfilePageClient({
         </Card>
 
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-125 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Profile</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Profile Picture Upload */}
+              <div className="space-y-2">
+                <Label>Profile Picture</Label>
+                <div className="flex flex-col items-center gap-4">
+                  {editForm.image ? (
+                    <div className="relative">
+                      <img
+                        src={editForm.image}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-purple-500/30"
+                        referrerPolicy="no-referrer"
+                        crossOrigin="anonymous"
+                      />
+                      {/* Only show remove button if image is different from Firebase default */}
+                      {editForm.image !== (currentUser?.photoURL || "/avatar.png") && (
+                        <button
+                          onClick={() => setEditForm({ ...editForm, image: currentUser?.photoURL || "/avatar.png" })}
+                          className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-full shadow-sm hover:bg-red-600 transition-colors"
+                          type="button"
+                          title="Reset to default profile picture"
+                        >
+                          <XIcon className="h-3 w-3 text-white" />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={currentUser?.photoURL || "/avatar.png"}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-dashed border-gray-600"
+                        referrerPolicy="no-referrer"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  )}
+                  <UploadDropzone
+                    className="border-none custom-upload-dropzone w-full"
+                    endpoint="profileImage"
+                    onClientUploadComplete={(res: any) => {
+                      if (res?.[0]?.url) {
+                        setEditForm({ ...editForm, image: res[0].url });
+                      }
+                    }}
+                    onUploadError={(error: Error) => {
+                      console.error("Upload error:", error);
+                      toast.error("Failed to upload image");
+                    }}
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Name</Label>
                 <Input
@@ -381,24 +488,11 @@ function ProfilePageClient({
                   name="bio"
                   value={editForm.bio}
                   onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                  className="min-h-[100px]"
+                  className="min-h-25"
                   placeholder="Tell us about yourself"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Designation</Label>
-                <select
-                  name="designation"
-                  value={editForm.designation}
-                  onChange={(e) => setEditForm({ ...editForm, designation: e.target.value })}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">Select your designation</option>
-                  <option value="STUDENT">Student</option>
-                  <option value="TEACHER">Teacher</option>
-                  <option value="WORKING_PROFESSIONAL">Working Professional</option>
-                </select>
-              </div>
+
               <div className="space-y-2">
                 <Label>Location</Label>
                 <Input
@@ -423,6 +517,41 @@ function ProfilePageClient({
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
               <Button onClick={handleEditSubmit}>Save Changes</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Account Confirmation Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent className="sm:max-w-100">
+            <DialogHeader>
+              <DialogTitle className="text-red-600">Delete Account</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-gray-300">
+                Are you sure you want to delete your account? This action is <span className="font-bold text-red-400">permanent and cannot be undone</span>.
+              </p>
+              <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 space-y-2">
+                <p className="text-sm text-red-300 font-semibold">This will:</p>
+                <ul className="text-sm text-red-200 space-y-1 list-disc list-inside">
+                  <li>Delete your profile and all personal information</li>
+                  <li>Remove all your posts and comments</li>
+                  <li>Cancel all your follows and followers</li>
+                  <li>Delete all your conversations and messages</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isDeleting ? "Deleting..." : "Delete Account"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

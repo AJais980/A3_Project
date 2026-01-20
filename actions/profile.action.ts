@@ -210,9 +210,15 @@ export async function updateProfile(firebaseUid: string, formData: FormData) {
     const location = formData.get("location") as string;
     const website = formData.get("website") as string;
     const designation = formData.get("designation") as string;
+    const image = formData.get("image") as string;
 
     // Build update data object
     const updateData: any = { name, bio, location, website };
+
+    // Only include image if it's provided
+    if (image !== null && image !== undefined) {
+      updateData.image = image;
+    }
 
     // Only include designation if it's provided and valid
     if (designation && ["STUDENT", "TEACHER", "WORKING_PROFESSIONAL"].includes(designation)) {
