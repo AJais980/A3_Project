@@ -54,6 +54,14 @@ const nextConfig: NextConfig = {
       canvas: false,
     };
 
+    // Fix for Prisma client in browser bundle
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@prisma/client': false,
+      };
+    }
+
     return config;
   },
 };

@@ -1,12 +1,4 @@
-// Try to import from Prisma client, fallback to local type
-let BadgeType: any;
-try {
-	const { BadgeType: PrismaBadgeType } = require("@prisma/client");
-	BadgeType = PrismaBadgeType;
-} catch {
-	// Fallback type definition
-}
-
+// Badge types - defined locally to avoid Prisma client browser bundling issues
 export type BadgeType =
 	| "RISING_HELPER"
 	| "HELPFUL_MIND"
