@@ -13,7 +13,7 @@ const app = next({
 	hostname,
 	port,
 	// Enable Turbopack in both dev and production
-	turbo: true,
+	turbo: false,
 	// Ensure we use the built files in production
 	dir: '.',
 	conf: {}

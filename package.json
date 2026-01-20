@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "cross-env NODE_ENV=production node server.js",
     "lint": "next lint",
     "postinstall": "prisma generate"
@@ -37,7 +37,7 @@
     "next": "^15.5.9",
     "nextjs-toploader": "^3.8.16",
     "nodemailer": "^7.0.12",
-    "pdfjs-dist": "^5.4.149",
+    "pdfjs-dist": "^4.4.168",
     "pg": "^8.17.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -55,7 +55,6 @@
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.5",
-    "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "cross-env": "^10.1.0",

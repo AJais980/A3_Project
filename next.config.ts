@@ -47,6 +47,13 @@ const nextConfig: NextConfig = {
         fs: false,
       };
     }
+
+    // Handle PDF.js canvas dependency
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      canvas: false,
+    };
+
     return config;
   },
 };

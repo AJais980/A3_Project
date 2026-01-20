@@ -13,6 +13,7 @@ import 'swiper/css/zoom';
 
 // Configure PDF.js worker
 if (typeof window !== 'undefined') {
+	// Use local worker file from public folder for reliability
 	pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 }
 
@@ -63,12 +64,26 @@ const PDFSlider: React.FC<PDFSliderProps> = ({ fileUrl, className = '' }) => {
 			// Get the appropriate URL (proxy for external URLs)
 			const pdfUrl = getPdfUrl(fileUrl);
 
-			// Configure loading parameters for external URLs
+			// Fetch the PDF as array buffer for better compatibility
+			let pdfData: ArrayBuffer;
+
+			try {
+				const response = await fetch(pdfUrl);
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				pdfData = await response.arrayBuffer();
+			} catch (fetchError) {
+				console.error('Error fetching PDF:', fetchError);
+				throw new Error('Failed to fetch PDF data');
+			}
+
+			// Load the PDF document using data instead of URL
 			const loadingTask = pdfjsLib.getDocument({
-				url: pdfUrl,
-				// Enable CORS and credentials
-				httpHeaders: {},
-				withCredentials: false,
+				data: pdfData,
+				// Disable streaming for better compatibility
+				disableStream: true,
+				disableAutoFetch: true,
 			});
 
 			// Load the PDF document
