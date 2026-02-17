@@ -117,7 +117,7 @@ export default function CreatePostModal({ open, onOpenChange, onPostCreated }: P
 						<div>
 							<Textarea
 								placeholder="What's on your mind? Share your work, ideas, or ask for feedback..."
-								className="min-h-[150px] resize-none bg-gray-800/50 border-gray-700 focus-visible:ring-purple-500 focus-visible:border-purple-500 text-base text-white placeholder-gray-400"
+								className="min-h-37.5 resize-none bg-gray-800/50 border-gray-700 focus-visible:ring-purple-500 focus-visible:border-purple-500 text-base text-white placeholder-gray-400"
 								value={content}
 								onChange={(e) => setContent(e.target.value)}
 								disabled={isPosting}

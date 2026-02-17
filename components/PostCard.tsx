@@ -281,7 +281,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
 
       {/* Post Content */}
       <div className="p-6 py-4">
-        <p className="text-gray-200 leading-relaxed whitespace-pre-wrap break-words">
+        <p className="text-gray-200 leading-relaxed whitespace-pre-wrap wrap-break-word">
           {post.content}
         </p>
       </div>
@@ -298,7 +298,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
               fileExtension={post.fileExtension || undefined}
             />
           ) : (
-            <div className="relative w-full h-96 lg:h-[30rem] rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center">
+            <div className="relative w-full h-96 lg:h-120 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center">
               <img
                 src={post.fileUrl}
                 alt="Post content"
@@ -354,7 +354,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
 
       {/* Comments Section */}
       {showComments && (
-        <div className="px-6 py-4 border-t border-gray-800 bg-gradient-to-b from-gray-900/30 to-gray-900/10">
+        <div className="px-6 py-4 border-t border-gray-800 bg-linear-to-b from-gray-900/30 to-gray-900/10">
           <div className="space-y-4">
             {/* Display Comments */}
             {comments.map((comment, index) => (
@@ -367,7 +367,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                     currentUserId={dbUserId}
                   >
                     <Link href={`/profile/${comment.author.username}`}>
-                      <Avatar className="w-10 h-10 flex-shrink-0 hover:ring-2 hover:ring-purple-500 transition-all cursor-pointer ring-1 ring-gray-700">
+                      <Avatar className="w-10 h-10 shrink-0 hover:ring-2 hover:ring-purple-500 transition-all cursor-pointer ring-1 ring-gray-700">
                         <AvatarImage src={comment.author.image ?? "/avatar.png"} />
                       </Avatar>
                     </Link>
@@ -397,7 +397,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                           )}
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs text-gray-500 flex-shrink-0">
+                          <span className="text-xs text-gray-500 shrink-0">
                             {formatDistanceToNow(new Date(comment.createdAt))} ago
                           </span>
                           {/* Delete button - only show for comment author */}
@@ -413,7 +413,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                           )}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-200 break-words leading-relaxed">{comment.content}</p>
+                      <p className="text-sm text-gray-200 wrap-break-word leading-relaxed">{comment.content}</p>
                     </div>
 
                     {/* Action Buttons (Reply, Rate) */}
@@ -469,7 +469,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                     {replyingToId === comment.id && user && (
                       <div className="mt-3 ml-3 bg-gray-800/30 rounded-lg p-3 border border-gray-700/50">
                         <div className="flex space-x-2">
-                          <Avatar className="w-8 h-8 flex-shrink-0 ring-1 ring-gray-700">
+                          <Avatar className="w-8 h-8 shrink-0 ring-1 ring-gray-700">
                             <AvatarImage src={user?.photoURL || "/avatar.png"} />
                           </Avatar>
                           <div className="flex-1">
@@ -478,7 +478,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                               placeholder={`Reply to @${comment.author.username}...`}
                               value={replyContent}
                               onChange={(e) => setReplyContent(e.target.value)}
-                              className="min-h-[70px] resize-none bg-gray-900/50 border-gray-600 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500/30 rounded-lg"
+                              className="min-h-17.5 resize-none bg-gray-900/50 border-gray-600 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500/30 rounded-lg"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && replyContent.trim()) {
                                   handleAddReply(comment.id);
@@ -535,7 +535,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                               currentUserId={dbUserId}
                             >
                               <Link href={`/profile/${reply.author.username}`}>
-                                <Avatar className="w-8 h-8 flex-shrink-0 hover:ring-2 hover:ring-purple-500 transition-all cursor-pointer ring-1 ring-gray-700">
+                                <Avatar className="w-8 h-8 shrink-0 hover:ring-2 hover:ring-purple-500 transition-all cursor-pointer ring-1 ring-gray-700">
                                   <AvatarImage src={reply.author.image ?? "/avatar.png"} />
                                 </Avatar>
                               </Link>
@@ -558,7 +558,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                                     </UserHoverCard>
                                   </div>
                                   <div className="flex items-center space-x-2">
-                                    <span className="text-xs text-gray-500 flex-shrink-0">
+                                    <span className="text-xs text-gray-500 shrink-0">
                                       {formatDistanceToNow(new Date(reply.createdAt))} ago
                                     </span>
                                     {/* Delete button - only show for reply author */}
@@ -574,7 +574,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-200 break-words leading-relaxed">
+                                <p className="text-sm text-gray-200 wrap-break-word leading-relaxed">
                                   {reply.content.split(' ').map((word: string, idx: number) =>
                                     word.startsWith('@') ? (
                                       <span key={idx} className="text-purple-400 font-medium">{word} </span>
@@ -598,7 +598,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
           {/* Add Comment Section */}
           {user ? (
             <div className="flex space-x-3 mt-4 pt-4 border-t border-gray-800">
-              <Avatar className="w-8 h-8 flex-shrink-0">
+              <Avatar className="w-8 h-8 shrink-0">
                 <AvatarImage src={user?.photoURL || "/avatar.png"} />
               </Avatar>
               <div className="flex-1">
@@ -606,7 +606,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                   placeholder="Write a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[80px] resize-none bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-purple-500/20"
+                  className="min-h-20 resize-none bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-purple-500/20"
                 />
                 <div className="flex justify-end mt-3">
                   <Button
