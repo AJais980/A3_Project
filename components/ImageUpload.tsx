@@ -47,9 +47,9 @@ function ImageUpload({ endpoint, onChange, value }: ImageUploadProps) {
           } else if (extension === 'pdf') {
             category = 'pdf';
           } else if ([
-            'js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'c', 'html', 'css', 
-            'json', 'md', 'php', 'go', 'rs', 'kt', 'swift', 'rb', 'dart', 'scala', 
-            'r', 'xml', 'sql', 'sh', 'bat', 'cs', 'yaml', 'yml', 'toml', 'ini', 
+            'js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'c', 'html', 'css',
+            'json', 'md', 'php', 'go', 'rs', 'kt', 'swift', 'rb', 'dart', 'scala',
+            'r', 'xml', 'sql', 'sh', 'bat', 'cs', 'yaml', 'yml', 'toml', 'ini',
             'cfg', 'txt', 'log', 'env', 'gitignore', 'dockerfile', 'makefile'
           ].includes(extension)) {
             category = 'code';
