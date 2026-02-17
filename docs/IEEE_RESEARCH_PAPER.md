@@ -376,7 +376,111 @@ Generation 1: Polling          Generation 2: WebSocket       Generation 3: Hybri
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### C. Dataset Composition
+### C. Algorithm Description
+
+The following algorithms describe the training and inference procedures for the abbreviation expansion model.
+
+---
+
+**Algorithm 1: Seq2Seq Model Training with Bahdanau Attention**
+
+---
+
+**Input:** Training dataset $D = \{(x_i, y_i)\}_{i=1}^{N}$ where $x_i$ is abbreviation, $y_i$ is expansion  
+**Output:** Trained model parameters $\theta^*$  
+**Hyperparameters:** Learning rate $\eta$, batch size $B$, max epochs $E$, patience $P$, teacher forcing ratio $\tau$
+
+---
+
+1. **Initialize** encoder parameters $\theta_{enc}$, decoder parameters $\theta_{dec}$, attention parameters $\theta_{attn}$
+2. **Initialize** character vocabulary $V$ from $D$
+3. **Initialize** best validation loss $L_{best} \leftarrow \infty$, patience counter $p \leftarrow 0$
+4. **for** epoch $= 1$ to $E$ **do**
+5. &emsp; **Shuffle** training data $D$
+6. &emsp; **for** each mini-batch $(X, Y)$ of size $B$ **do**
+7. &emsp;&emsp; // **Encoding Phase**
+8. &emsp;&emsp; **for** each input sequence $x \in X$ **do**
+9. &emsp;&emsp;&emsp; $e_t \leftarrow \text{Embedding}(x_t)$ for each character $x_t$
+10. &emsp;&emsp;&emsp; $(h_1, ..., h_T), (h_T^{fwd}, h_T^{bwd}) \leftarrow \text{BiLSTM}(e_1, ..., e_T)$
+11. &emsp;&emsp; **end for**
+12. &emsp;&emsp; // **Decoding Phase with Attention**
+13. &emsp;&emsp; $s_0 \leftarrow \text{Linear}([h_T^{fwd}; h_T^{bwd}])$ // Initialize decoder state
+14. &emsp;&emsp; **for** $t = 1$ to $|y|$ **do**
+15. &emsp;&emsp;&emsp; // Bahdanau Attention Computation
+16. &emsp;&emsp;&emsp; $e_{ti} \leftarrow V^T \tanh(W_1 h_i + W_2 s_{t-1})$ for all $i$
+17. &emsp;&emsp;&emsp; $\alpha_t \leftarrow \text{softmax}(e_t)$ // Attention weights
+18. &emsp;&emsp;&emsp; $c_t \leftarrow \sum_{i=1}^{T} \alpha_{ti} h_i$ // Context vector
+19. &emsp;&emsp;&emsp; // Teacher Forcing Decision
+20. &emsp;&emsp;&emsp; **if** $\text{random}() < \tau$ **then**
+21. &emsp;&emsp;&emsp;&emsp; $\hat{y}_{t-1} \leftarrow y_{t-1}$ // Use ground truth
+22. &emsp;&emsp;&emsp; **else**
+23. &emsp;&emsp;&emsp;&emsp; $\hat{y}_{t-1} \leftarrow \arg\max(o_{t-1})$ // Use prediction
+24. &emsp;&emsp;&emsp; **end if**
+25. &emsp;&emsp;&emsp; $s_t, o_t \leftarrow \text{LSTM}([\text{Embedding}(\hat{y}_{t-1}); c_t], s_{t-1})$
+26. &emsp;&emsp; **end for**
+27. &emsp;&emsp; // **Loss Computation and Backpropagation**
+28. &emsp;&emsp; $\mathcal{L} \leftarrow -\frac{1}{|Y|} \sum_{t=1}^{|y|} \log P(y_t | o_t)$ // Cross-entropy loss
+29. &emsp;&emsp; $\theta \leftarrow \theta - \eta \cdot \nabla_\theta \mathcal{L}$ // AdamW update
+30. &emsp; **end for**
+31. &emsp; // **Validation and Early Stopping**
+32. &emsp; $L_{val} \leftarrow \text{Evaluate}(D_{val})$
+33. &emsp; **if** $L_{val} < L_{best}$ **then**
+34. &emsp;&emsp; $L_{best} \leftarrow L_{val}$; $\theta^* \leftarrow \theta$; $p \leftarrow 0$
+35. &emsp; **else**
+36. &emsp;&emsp; $p \leftarrow p + 1$
+37. &emsp;&emsp; **if** $p \geq P$ **then break** // Early stopping
+38. &emsp; **end if**
+39. &emsp; $\tau \leftarrow \max(0.5, \tau - 0.01)$ // Decay teacher forcing
+40. **end for**
+41. **return** $\theta^*$
+
+---
+
+**Algorithm 2: Abbreviation Expansion Inference with Beam Search**
+
+---
+
+**Input:** Abbreviation string $x$, trained model $\theta^*$, beam width $k$, max length $L_{max}$  
+**Output:** Expanded string $\hat{y}$
+
+---
+
+1. **Encode** input sequence:
+2. &emsp; $e_t \leftarrow \text{Embedding}(x_t)$ for each character $x_t$
+3. &emsp; $(h_1, ..., h_T), (h_T^{fwd}, h_T^{bwd}) \leftarrow \text{BiLSTM}(e_1, ..., e_T)$
+4. &emsp; $s_0 \leftarrow \text{Linear}([h_T^{fwd}; h_T^{bwd}])$
+5. **Initialize** beam $\mathcal{B} \leftarrow \{(\langle\text{SOS}\rangle, s_0, 0.0)\}$ // (sequence, state, log-prob)
+6. **for** $t = 1$ to $L_{max}$ **do**
+7. &emsp; $\mathcal{B}_{new} \leftarrow \emptyset$
+8. &emsp; **for** each $(seq, s_{t-1}, \log p) \in \mathcal{B}$ **do**
+9. &emsp;&emsp; **if** $seq$ ends with $\langle\text{EOS}\rangle$ **then**
+10. &emsp;&emsp;&emsp; $\mathcal{B}_{new} \leftarrow \mathcal{B}_{new} \cup \{(seq, s_{t-1}, \log p)\}$
+11. &emsp;&emsp;&emsp; **continue**
+12. &emsp;&emsp; **end if**
+13. &emsp;&emsp; // Attention computation
+14. &emsp;&emsp; $e_{ti} \leftarrow V^T \tanh(W_1 h_i + W_2 s_{t-1})$ for all $i$
+15. &emsp;&emsp; $\alpha_t \leftarrow \text{softmax}(e_t)$
+16. &emsp;&emsp; $c_t \leftarrow \sum_{i=1}^{T} \alpha_{ti} h_i$
+17. &emsp;&emsp; // Generate next character distribution
+18. &emsp;&emsp; $s_t, o_t \leftarrow \text{LSTM}([\text{Embedding}(seq_{-1}); c_t], s_{t-1})$
+19. &emsp;&emsp; $P(y_t) \leftarrow \text{softmax}(o_t)$
+20. &emsp;&emsp; // Expand beam with top-k candidates
+21. &emsp;&emsp; **for** each of top-$k$ characters $c$ from $P(y_t)$ **do**
+22. &emsp;&emsp;&emsp; $\mathcal{B}_{new} \leftarrow \mathcal{B}_{new} \cup \{(seq \oplus c, s_t, \log p + \log P(c))\}$
+23. &emsp;&emsp; **end for**
+24. &emsp; **end for**
+25. &emsp; // Prune to top-k beams
+26. &emsp; $\mathcal{B} \leftarrow \text{top-}k(\mathcal{B}_{new}, \text{by } \log p)$
+27. &emsp; // Early termination if all beams ended
+28. &emsp; **if** all sequences in $\mathcal{B}$ end with $\langle\text{EOS}\rangle$ **then break**
+29. **end for**
+30. // Length normalization and selection
+31. $\hat{y} \leftarrow \arg\max_{(seq, \_, \log p) \in \mathcal{B}} \frac{\log p}{|seq|^\alpha}$ where $\alpha = 0.6$
+32. **return** $\hat{y}$ (without $\langle\text{SOS}\rangle$ and $\langle\text{EOS}\rangle$ tokens)
+
+---
+
+### D. Dataset Composition
 
 **Table IV: Training Data Categories**
 

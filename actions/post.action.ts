@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { buildSearchTerms } from "@/lib/searchExpansion";
 
 export async function createPost(
   content: string,
@@ -100,11 +101,24 @@ export async function getPosts(options?: GetPostsOptions) {
       AND: []
     };
 
-    // Search by content
+    // Search by content with expanded terms (OR logic for all related terms)
     if (searchQuery) {
-      whereClause.AND.push({
-        content: { contains: searchQuery, mode: 'insensitive' }
-      });
+      // Get expanded search terms from the dictionary
+      const expandedTerms = buildSearchTerms(searchQuery);
+
+      if (expandedTerms.length > 1) {
+        // Multiple terms - use OR logic to search for any of them
+        whereClause.AND.push({
+          OR: expandedTerms.map(term => ({
+            content: { contains: term, mode: 'insensitive' }
+          }))
+        });
+      } else if (expandedTerms.length === 1) {
+        // Single term - simple contains
+        whereClause.AND.push({
+          content: { contains: expandedTerms[0], mode: 'insensitive' }
+        });
+      }
     }
 
     // Filter by file type using the fileType field in database
